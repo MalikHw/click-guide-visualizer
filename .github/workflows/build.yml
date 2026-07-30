@@ -50,7 +50,7 @@ jobs:
           combine: true
           target: ${{ matrix.config.target }}
           sdk: v${{ env.GEODE_VERSION }}
-          build-config: RelWithDebInfo
+          build-config: Release
 
   package:
     name: Combine into one .geode
