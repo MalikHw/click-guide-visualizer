@@ -1,0 +1,13 @@
+* text=auto eol=lf
+
+*.geode binary
+*.gdr   binary
+*.gdr2  binary
+*.mhr   binary
+*.so    binary
+*.dll   binary
+*.dylib binary
+*.lib   binary
+*.pdb   binary
+*.png   binary
+*.zip   binary

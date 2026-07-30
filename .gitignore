@@ -1,0 +1,11 @@
+build/
+build-*/
+out/
+.cache/
+.vs/
+.vscode/
+.idea/
+CMakeUserPresets.json
+*.geode
+*.user
+.DS_Store
