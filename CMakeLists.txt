@@ -6,8 +6,9 @@ if (NOT DEFINED ENV{GEODE_SDK})
     message(FATAL_ERROR "Unable to find Geode SDK! Please define GEODE_SDK environment variable to point to Geode")
 endif()
 
-set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
-
+if (APPLE AND NOT IOS AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
+endif()
 project(ClickGuideVisualizer VERSION 1.0.0)
 
 include($ENV{GEODE_SDK}/cmake/CPM.cmake)
