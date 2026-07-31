@@ -169,6 +169,40 @@ jobs:
           print('archive intact,', len(data), 'bytes')
           PYEOF
 
+      - name: Confirm the logo and about page are packaged
+        run: |
+          set -euo pipefail
+          cd packaged/unpacked
+          FAILED=0
+
+          if [ -f logo.png ]; then
+            python3 - <<'PYEOF'
+          import struct
+
+          data = open('logo.png', 'rb').read()
+          if data[:8] != b'\x89PNG\r\n\x1a\n':
+              raise SystemExit('::error::logo.png is not a PNG')
+          width, height = struct.unpack('>II', data[16:24])
+          print(f'logo.png is {width}x{height}')
+          if width != height:
+              raise SystemExit(f'::error::logo.png must be square, got {width}x{height}')
+          if width != 336:
+              print(f'::warning::logo.png is {width}px, Geode expects 336px')
+          PYEOF
+          else
+            echo "::error::logo.png missing from the package"
+            FAILED=1
+          fi
+
+          if [ -f about.md ]; then
+            echo "ok   about.md present, $(wc -l < about.md) lines"
+          else
+            echo "::error::about.md missing from the package"
+            FAILED=1
+          fi
+
+          exit "$FAILED"
+
       - name: Check the settings survived packaging
         run: |
           set -euo pipefail

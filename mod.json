@@ -11,10 +11,18 @@
     "version": "v0.1.0",
     "developer": "GeekedGDPlayer",
     "description": "Draws a macro's upcoming inputs onto the level ahead of the player.",
+    "links": {
+        "source": "https://github.com/ohiorizzgod67mango-a11y/click-guide-visualizer"
+    },
+    "issues": {
+        "info": "Report bugs on the GitHub issues page.",
+        "url": "https://github.com/ohiorizzgod67mango-a11y/click-guide-visualizer/issues"
+    },
     "tags": [
         "gameplay",
         "utility",
-        "offline"
+        "offline",
+        "cheat"
     ],
     "settings": {
         "visuals-title": {
