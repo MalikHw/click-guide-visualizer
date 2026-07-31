@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <deque>
 #include <functional>
@@ -10,6 +11,14 @@ namespace cgv {
 struct PressEvent {
     int frame = 0;
     bool player2 = false;
+};
+
+struct AlignmentReport {
+    bool locked = false;
+    bool searching = false;
+    double offsetFrames = 0.0;
+    size_t presses = 0;
+    size_t support = 0;
 };
 
 struct Judgement {
@@ -38,6 +47,9 @@ public:
     void clearJudgements();
     std::deque<Judgement> const& judgements() const { return m_judgements; }
 
+    void setAlignmentReport(AlignmentReport report);
+    AlignmentReport alignmentReport() const { return m_alignment; }
+
     void setRedrawHandler(std::function<void()> handler);
     void clearRedrawHandler();
     void requestRedraw();
@@ -45,6 +57,7 @@ public:
 private:
     Runtime() = default;
 
+    AlignmentReport m_alignment;
     std::vector<PressEvent> m_presses;
     std::deque<Judgement> m_judgements;
     std::function<void()> m_redraw;

@@ -8,7 +8,7 @@
     },
     "id": "you.click-guide-visualizer",
     "name": "Click Guide Visualizer",
-    "version": "v0.1.0",
+    "version": "v0.2.0",
     "developer": "GeekedGDPlayer",
     "description": "Draws a macro's upcoming inputs onto the level ahead of the player.",
     "links": {
@@ -443,11 +443,11 @@
             "type": "title",
             "name": "Macro"
         },
-        "macro-path": {
-            "type": "path",
-            "default": "",
+        "macro-file": {
+            "type": "file",
+            "default": "Pick a macro file",
             "name": "Macro File",
-            "description": "Macro to visualise. Importing through the pause menu is usually easier.",
+            "description": "Macro to visualise. Picking one here loads it immediately. Importing through the pause menu is usually easier.",
             "control": {
                 "filters": [
                     {

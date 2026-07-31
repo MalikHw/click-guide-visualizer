@@ -219,7 +219,14 @@ jobs:
               'generate-from-level',
               'enable-cheats',
               'line-lead-units',
+              'macro-file',
+              'auto-align',
           ]
+
+          deprecated = ['macro-path']
+          present = [key for key in deprecated if key in settings]
+          if present:
+              raise SystemExit(f'::error::deprecated settings still present: {present}')
 
           missing = [key for key in required if key not in settings]
           if missing:

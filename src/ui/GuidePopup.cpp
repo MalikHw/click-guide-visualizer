@@ -2,6 +2,9 @@
 
 #include "core/Compat.hpp"
 #include "settings/Settings.hpp"
+#include "runtime/Alignment.hpp"
+#include "runtime/Runtime.hpp"
+#include "store/MacroSetting.hpp"
 #include "store/MacroStore.hpp"
 #include "ui/MacroPicker.hpp"
 
@@ -142,6 +145,17 @@ void GuidePopup::rebuildList() {
     m_scroll->moveToTop();
 }
 
+std::string GuidePopup::alignmentSummary() {
+    auto report = Runtime::get().alignmentReport();
+    if (report.locked) {
+        return fmt::format("aligned {:+.0f}f", report.offsetFrames);
+    }
+    if (report.searching) {
+        return fmt::format("aligning ({}/{})", report.presses, kMinPressesBeforeLock);
+    }
+    return "not aligned";
+}
+
 void GuidePopup::refreshStatus() {
     if (!m_status) return;
 
@@ -151,10 +165,11 @@ void GuidePopup::refreshStatus() {
         return;
     }
 
-    m_status->setString(fmt::format("{} - {} inputs @ {:.0f} FPS",
-                                    abbreviate(store.displayName(), 24),
+    m_status->setString(fmt::format("{} - {} inputs @ {:.0f} FPS - {}",
+                                    abbreviate(store.displayName(), 20),
                                     store.inputCount(),
-                                    store.framerate())
+                                    store.framerate(),
+                                    alignmentSummary())
                             .c_str());
 }
 
@@ -165,7 +180,7 @@ void GuidePopup::loadMacroAt(std::filesystem::path const& path) {
         return;
     }
 
-    Mod::get()->setSavedValue<std::string>("last-macro", path.string());
+    rememberLoadedMacro(path);
     rebuildList();
     refreshStatus();
 }

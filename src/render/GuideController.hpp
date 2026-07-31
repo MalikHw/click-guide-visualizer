@@ -58,6 +58,7 @@ private:
     Viewport computeViewport() const;
     float resolveMarkerY(Marker const& marker, Viewport const& view);
     double currentMacroFrame() const;
+    void publishAlignmentReport() const;
     bool gamemodeAllowed() const;
 
     PlayLayer* m_layer = nullptr;

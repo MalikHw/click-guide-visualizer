@@ -10,7 +10,7 @@ if (APPLE AND NOT IOS AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
     set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64")
 endif()
 
-project(ClickGuideVisualizer VERSION 0.1.0)
+project(ClickGuideVisualizer VERSION 0.2.0)
 
 include($ENV{GEODE_SDK}/cmake/CPM.cmake)
 

@@ -47,6 +47,10 @@ void Runtime::clearJudgements() {
     m_judgements.clear();
 }
 
+void Runtime::setAlignmentReport(AlignmentReport report) {
+    m_alignment = report;
+}
+
 void Runtime::setRedrawHandler(std::function<void()> handler) {
     m_redraw = std::move(handler);
 }

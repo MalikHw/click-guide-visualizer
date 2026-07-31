@@ -14,6 +14,7 @@
 #include <Geode/Geode.hpp>
 #include <algorithm>
 #include <cmath>
+#include <vector>
 
 using namespace geode::prelude;
 using namespace cocos2d;
@@ -45,6 +46,7 @@ void GuideController::attach(PlayLayer* layer) {
     m_anchorX = 0.f;
 
     m_alignment.reset();
+    publishAlignmentReport();
     m_heights.clearAll();
     m_predictor.clear();
     m_predictorPlayer2.clear();
@@ -93,6 +95,7 @@ void GuideController::onLevelReset() {
     m_anchorLatched = false;
     m_anchorX = 0.f;
     m_alignment.reset();
+    publishAlignmentReport();
     m_predictor.clear();
     m_predictorPlayer2.clear();
     m_heights.clearSmoothing();
@@ -225,6 +228,16 @@ bool GuideController::worldGuideVisible() const {
     return !config.rhythmHideWorldGuide;
 }
 
+void GuideController::publishAlignmentReport() const {
+    AlignmentReport report;
+    report.locked = m_alignment.locked();
+    report.searching = settings().autoAlign && !m_alignment.locked();
+    report.offsetFrames = m_alignment.offsetFrames();
+    report.presses = m_alignment.pressCount();
+    report.support = m_alignment.supportCount();
+    Runtime::get().setAlignmentReport(report);
+}
+
 double GuideController::currentMacroFrame() const {
     auto data = MacroStore::get().data();
     if (!data || !m_layer) return 0.0;
@@ -249,9 +262,12 @@ void GuideController::consumePresses() {
     double playerFrame = currentMacroFrame();
     double window = m_alignment.windowSeconds() * tickRate;
 
+    bool searching = config.autoAlign && !m_alignment.locked();
+
     for (auto const& press : presses) {
-        const ReplayInput* best = nullptr;
+        bool matched = false;
         double bestDelta = 0.0;
+        std::vector<double> candidates;
 
         for (auto const& input : data->inputs) {
             if (!input.down) continue;
@@ -260,26 +276,33 @@ void GuideController::consumePresses() {
             double macroFrame = static_cast<double>(input.frame) + m_alignment.offsetFrames();
             double delta = playerFrame - macroFrame;
             if (std::fabs(delta) > window) continue;
-            if (!best || std::fabs(delta) < std::fabs(bestDelta)) {
-                best = &input;
+
+            if (searching) candidates.push_back(delta);
+
+            if (!matched || std::fabs(delta) < std::fabs(bestDelta)) {
+                matched = true;
                 bestDelta = delta;
             }
         }
 
-        if (!best) continue;
+        if (searching) {
+            m_alignment.addCandidates(candidates);
+            publishAlignmentReport();
+            if (m_alignment.locked()) {
+                log::info("{} Alignment locked: macro offset {:.0f} frames ({:.2f}s) from {} votes",
+                          kLogTag, m_alignment.offsetFrames(),
+                          m_alignment.offsetFrames() / tickRate, m_alignment.supportCount());
+                m_geometryValid = false;
+                searching = false;
+            }
+            continue;
+        }
+
+        if (!matched) continue;
 
         m_rhythmLane.consumeNearestNote(m_layer->m_attemptTime, press.player2,
                                         static_cast<int>(std::lround(bestDelta)));
         m_rhythmLane.registerHit();
-
-        if (config.autoAlign && !m_alignment.locked()) {
-            if (m_alignment.addSample(bestDelta)) {
-                log::info("{} Alignment locked: macro offset {:.0f} frames ({:.2f}s)", kLogTag,
-                          m_alignment.offsetFrames(), m_alignment.offsetFrames() / tickRate);
-                m_geometryValid = false;
-            }
-            continue;
-        }
 
         if (!config.showAccuracy) continue;
 

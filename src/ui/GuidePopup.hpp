@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "ui/MacroLibrary.hpp"
 
 #include <Geode/Geode.hpp>
@@ -22,6 +24,7 @@ private:
     void buildStatusLabel();
     void buildScrollList();
     void rebuildList();
+    static std::string alignmentSummary();
     void refreshStatus();
 
     void onImport(cocos2d::CCObject* sender);

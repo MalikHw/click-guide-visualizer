@@ -1,6 +1,7 @@
 #include "core/Compat.hpp"
 #include "runtime/Runtime.hpp"
 #include "settings/Settings.hpp"
+#include "store/MacroSetting.hpp"
 #include "store/MacroStore.hpp"
 #include "ui/MacroLibrary.hpp"
 
@@ -11,25 +12,40 @@ using namespace geode::prelude;
 
 namespace {
 
+void logLoadedMacro() {
+    log::info("{} Loaded macro {} ({} inputs)", cgv::kLogTag,
+              cgv::MacroStore::get().displayName(), cgv::MacroStore::get().inputCount());
+}
+
+void loadMacroChosenInSettings() {
+    std::string error;
+    if (cgv::loadMacroFromSetting(error)) {
+        logLoadedMacro();
+        cgv::Runtime::get().requestRedraw();
+        return;
+    }
+    if (!error.empty()) {
+        log::warn("{} Could not load the chosen macro: {}", cgv::kLogTag, error);
+    }
+}
+
 void applySettingsChange() {
     cgv::SettingsCache::get().refresh();
+    loadMacroChosenInSettings();
     cgv::Runtime::get().requestRedraw();
 }
 
 void autoLoadLastMacro() {
     if (!cgv::settings().autoLoadMacro) return;
 
-    auto stored = Mod::get()->getSavedValue<std::string>("last-macro");
-    if (stored.empty()) return;
-
     std::string error;
-    if (!cgv::MacroStore::get().loadFromFile(stored, error)) {
-        log::warn("{} Could not auto-load macro: {}", cgv::kLogTag, error);
+    if (cgv::loadRememberedMacro(error)) {
+        logLoadedMacro();
         return;
     }
-
-    log::info("{} Auto-loaded macro {} ({} inputs)", cgv::kLogTag,
-              cgv::MacroStore::get().displayName(), cgv::MacroStore::get().inputCount());
+    if (!error.empty()) {
+        log::warn("{} Could not auto-load macro: {}", cgv::kLogTag, error);
+    }
 }
 
 void listenForSettingChanges() {
@@ -45,4 +61,5 @@ $on_mod(Loaded) {
     cgv::MacroLibrary::ensureDirectory();
     listenForSettingChanges();
     autoLoadLastMacro();
+    loadMacroChosenInSettings();
 }

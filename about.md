@@ -116,12 +116,37 @@ Macros store frame numbers, not positions. If a macro was recorded from a
 different StartPos, everything would land in the wrong place.
 
 Instead of asking you to dial in an offset, the mod measures it. Play normally;
-after about five reasonably consistent clicks it locks on and rebuilds the
-guide. You will see this in the log:
+after about six clicks it locks on and rebuilds the guide. You will see this in
+the log:
 
 ```
-Alignment locked: macro offset 137 frames (0.57s)
+Alignment locked: macro offset 137 frames (0.57s) from 8 votes
 ```
+
+The popup's status line also shows it live, so you can tell the difference
+between "still working it out" and "gave up":
+
+```
+mymacro.gdr2 - 412 inputs @ 240 FPS - aligning (3/6)
+mymacro.gdr2 - 412 inputs @ 240 FPS - aligned +137f
+```
+
+### How it decides
+
+Every click you make is compared against *every* macro click within the search
+window, and each pairing is one candidate offset. Those candidates are binned
+into a histogram, and the heaviest bin wins — but only if at least six
+*different* clicks of yours support it. One frantic click cannot outvote the
+rest.
+
+This matters because the obvious approach does not work. Matching each click to
+its nearest macro click only ever finds offsets near zero, since "nearest"
+is measured from the offset you are trying to discover. Voting has no such blind
+spot: it recovers offsets of several seconds in either direction just as
+reliably as small ones.
+
+If your clicks genuinely have nothing to do with the macro, no bin gets enough
+support and it stays unlocked rather than inventing an answer.
 
 It re-measures on every attempt, since your StartPos can change. If you would
 rather it never did this, turn off **Auto Align**.
