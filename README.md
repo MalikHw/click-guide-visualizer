@@ -48,35 +48,48 @@ truncated file gives you an error message, not a crash.
 ## Rhythm mode
 
 By default the guide is drawn *into the level*, so bands sit on the geometry and
-scroll past with it. Rhythm mode replaces that with a fixed lane pinned to your
-screen: notes slide in from the right toward a stationary hit line, and you
-press when a note reaches it. The level keeps playing behind it.
+scroll past with it. Rhythm mode replaces that with a single wide column pinned
+to the middle of your screen, like a one-key osu!mania chart: notes fall from the
+top toward a stationary judgement line, and you press when a note lands on it.
+The level keeps playing behind it.
 
 Turn it on with **Rhythm Mode** in the settings.
 
 ```
-        note        note   note      <- these scroll left
-   |======================================|
-   |      #          ##     #             |
-   |------|-------------------------------|
-        hit line (fixed)
+        |          |
+        |  ######  |   <- notes fall down
+        |          |
+        |  ######  |
+        |          |
+      ==|##########|==  <- judgement line (fixed, screen middle)
+        |          |
+        |          |
 ```
 
-The hit line flashes when you press. Timing labels appear just above the lane.
+Notes span the full width of the column, and so does the judgement line, so a
+note sits exactly on the line at the moment you should press. The line flashes
+on every press. Timing labels appear beside the column.
 
 Settings worth tuning:
 
 | Setting | Does what |
 | --- | --- |
-| **Lead Time** | How many seconds ahead notes appear. Lower = faster scroll, less warning. Default 2s. |
-| **Hit Line Position** | Where the line sits horizontally, 0 = far left, 1 = far right. |
-| **Lane Height** / **Lane Thickness** | Where the lane sits vertically and how tall it is. |
-| **Note Size** | Size of each note block. |
-| **Lane Opacity** | How visible the lane background strip is. |
-| **Hide In-Level Guide** | On by default. Turn off to keep the in-level bands *as well as* the lane. |
+| **Lead Time** | How many seconds ahead notes appear. Lower = faster fall, less warning. Default 2s. |
+| **Judgement Line Height** | Where the line sits vertically, 0 = bottom, 1 = top. Default 0.5, the middle of the screen. |
+| **Lane Position** | Where the column sits horizontally. Default 0.5, centred. |
+| **Lane Width** | How wide the column is, in pixels. Default 220. |
+| **Note Thickness** | How tall each note bar is. Width always matches the column. |
+| **Lane Opacity** | How visible the column background is. |
+| **Hide In-Level Guide** | On by default. Turn off to keep the in-level bands *as well as* the column. |
 
-Holds appear as an elongated note; taps are a single block. Player 2 notes in
-dual sections are drawn in orange, offset within the lane.
+A note on the default line height: at 0.5 the notes only have the top half of
+the screen to fall, so you get about half the reading time you would in real
+mania, where the bar sits near the bottom. If notes feel like they arrive too
+fast, either raise **Judgement Line Height** or raise **Lead Time**.
+
+Holds appear as a bar extending upward from the note head; taps are a single
+bar. Player 2 notes in dual sections are drawn in orange, inset slightly
+narrower than player 1 so overlapping notes stay distinguishable.
 
 ## Reading the overlay
 

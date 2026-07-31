@@ -80,11 +80,11 @@ void SettingsCache::refresh() {
     next.clipBandsAtLine = boolSetting("clip-bands-at-line", false);
 
     next.rhythmMode = boolSetting("rhythm-mode", false);
-    next.rhythmLaneY = clampUnit(floatSetting("rhythm-lane-y", 0.82));
-    next.rhythmLaneHeight = clampRange(floatSetting("rhythm-lane-height", 70.0), 20.0, 300.0, 70.0);
-    next.rhythmHitX = clampRange(floatSetting("rhythm-hit-x", 0.25), 0.05, 0.95, 0.25);
+    next.rhythmLaneX = clampUnit(floatSetting("rhythm-lane-x", 0.5));
+    next.rhythmLaneWidth = clampRange(floatSetting("rhythm-lane-width", 220.0), 60.0, 700.0, 220.0);
+    next.rhythmHitY = clampRange(floatSetting("rhythm-hit-y", 0.5), 0.05, 0.95, 0.5);
     next.rhythmLeadTime = clampRange(floatSetting("rhythm-lead-time", 2.0), 0.25, 8.0, 2.0);
-    next.rhythmNoteWidth = clampRange(floatSetting("rhythm-note-width", 10.0), 1.0, 60.0, 10.0);
+    next.rhythmNoteThickness = clampRange(floatSetting("rhythm-note-thickness", 22.0), 4.0, 90.0, 22.0);
     next.rhythmLaneOpacity = clampUnit(floatSetting("rhythm-lane-opacity", 0.5));
     next.rhythmHideWorldGuide = boolSetting("rhythm-hide-world-guide", true);
     next.rhythmHitEffects = boolSetting("rhythm-hit-effects", true);

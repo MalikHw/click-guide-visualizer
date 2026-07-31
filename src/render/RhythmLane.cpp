@@ -19,6 +19,8 @@ namespace cgv {
 namespace {
 
 constexpr float kTrailingVisibleSeconds = 0.35f;
+constexpr float kLabelSideMargin = 34.f;
+constexpr float kLabelRiseAboveLine = 10.f;
 
 } // namespace
 
@@ -110,15 +112,15 @@ void RhythmLane::consumeNearestNote(double songTime, bool player2, int deltaFram
     if (!config.rhythmHitEffects) return;
 
     LaneLayout layout = currentLayout();
-    float screenX = projectToScreen(m_timeline[bestIndex].hitTime, songTime, layout);
-    screenX = std::clamp(screenX, layout.laneLeft, layout.laneRight);
+    float screenY = projectToScreen(m_timeline[bestIndex].hitTime, songTime, layout);
+    screenY = std::clamp(screenY, layout.laneBottom, layout.laneTop);
 
-    m_effects.spawn(screenX, player2, deltaFrames, config.rhythmHitEffectTime);
+    m_effects.spawn(screenY, player2, deltaFrames, config.rhythmHitEffectTime);
 }
 
 float RhythmLane::projectToScreen(double noteTime, double songTime, LaneLayout const& layout) const {
     double remaining = noteTime - songTime;
-    return layout.hitX + static_cast<float>(remaining) * m_pixelsPerSecond;
+    return layout.hitY + static_cast<float>(remaining) * m_pixelsPerSecond;
 }
 
 void RhythmLane::drawNotes(double songTime, LaneLayout const& layout) {
@@ -133,11 +135,11 @@ void RhythmLane::drawNotes(double songTime, LaneLayout const& layout) {
         if (note.hitTime > horizon) break;
         if (index < m_consumed.size() && m_consumed[index]) continue;
 
-        float startX = projectToScreen(note.hitTime, songTime, layout);
-        float endX = projectToScreen(note.releaseTime, songTime, layout);
+        float hitLineY = projectToScreen(note.hitTime, songTime, layout);
+        float releaseY = projectToScreen(note.releaseTime, songTime, layout);
 
-        if (startX > layout.laneRight && endX > layout.laneRight) continue;
-        if (endX < layout.laneLeft) continue;
+        if (hitLineY > layout.laneTop && releaseY > layout.laneTop) continue;
+        if (releaseY < layout.laneBottom) continue;
 
         double approach = note.hitTime - songTime;
         float alphaScale = 1.f;
@@ -146,7 +148,7 @@ void RhythmLane::drawNotes(double songTime, LaneLayout const& layout) {
             alphaScale = std::clamp(static_cast<float>((config.rhythmLeadTime - approach) / span), 0.f, 1.f);
         }
 
-        RhythmPainter::paintNote(m_node, layout, config, startX, endX, note.isHold,
+        RhythmPainter::paintNote(m_node, layout, config, hitLineY, releaseY, note.isHold,
                                  note.player2, alphaScale);
     }
 }
@@ -175,11 +177,10 @@ void RhythmLane::update(double songTime, float deltaSeconds) {
 
     m_effects.advance(deltaSeconds);
 
-    CCSize windowSize = CCDirector::sharedDirector()->getWinSize();
-    LaneLayout layout = computeLaneLayout(windowSize, config);
+    LaneLayout layout = currentLayout();
 
     float leadTime = std::max(config.rhythmLeadTime, 0.01f);
-    m_pixelsPerSecond = (windowSize.width - layout.hitX) / leadTime;
+    m_pixelsPerSecond = (layout.laneTop - layout.hitY) / leadTime;
 
     RhythmPainter::paintLaneBackground(m_node, layout, config);
 
@@ -196,8 +197,8 @@ void RhythmLane::update(double songTime, float deltaSeconds) {
     if (config.showAccuracy) {
         for (auto const& judgement : Runtime::get().judgements()) {
             float life = judgement.remainingSeconds / kJudgementLifetimeSeconds;
-            m_labels.place(layout.hitX, layout.centerY + layout.halfHeight + 6.f,
-                           judgement.deltaFrames, life);
+            m_labels.place(layout.centerX + layout.halfWidth + kLabelSideMargin,
+                           layout.hitY + kLabelRiseAboveLine, judgement.deltaFrames, life);
         }
     }
     m_labels.endFrame();

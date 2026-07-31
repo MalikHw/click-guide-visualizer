@@ -73,11 +73,11 @@ void drawShrinkingNote(CCDrawNode* node, LaneLayout const& layout, float centreX
 
 } // namespace
 
-void HitEffects::spawn(float screenX, bool player2, int deltaFrames, float lifetime) {
-    if (!std::isfinite(screenX)) return;
+void HitEffects::spawn(float screenY, bool player2, int deltaFrames, float lifetime) {
+    if (!std::isfinite(screenY)) return;
 
     HitEffect effect;
-    effect.screenX = screenX;
+    effect.screenY = screenY;
     effect.age = 0.f;
     effect.lifetime = std::max(lifetime, 0.05f);
     effect.player2 = player2;
@@ -129,19 +129,21 @@ void HitEffects::paint(CCDrawNode* node, LaneLayout const& layout, Snapshot cons
         float fade = 1.f - progress;
         if (fade <= 0.f) continue;
 
-        float centreY = layout.centerY + (effect.player2 ? layout.playerTwoOffset : 0.f);
+        float centreX = layout.centerX;
+        float centreY = effect.screenY;
+        float ringRadius = layout.halfWidth;
         ccColor3B base = effectColor(effect, config);
         float alpha = fade * config.indicatorOpacity;
 
         float ringScale = kRingStartScale + (kRingEndScale - kRingStartScale) * eased;
-        drawRing(node, effect.screenX, centreY, layout.noteHalfWidth * ringScale,
+        drawRing(node, centreX, centreY, ringRadius * ringScale,
                  withAlpha(base, alpha), kRingThickness);
 
-        drawBurst(node, effect.screenX, centreY, kBurstSpokeLength * eased,
+        drawBurst(node, centreX, centreY, kBurstSpokeLength * eased,
                   withAlpha(base, alpha * 0.8f));
 
         float shrink = std::max(1.f - eased, kShrinkFloor);
-        drawShrinkingNote(node, layout, effect.screenX, centreY, shrink,
+        drawShrinkingNote(node, layout, centreX, centreY, shrink,
                           withAlpha(kAccentWhite, alpha * kFlashAlpha));
     }
 }

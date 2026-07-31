@@ -8,8 +8,8 @@
     },
     "id": "you.click-guide-visualizer",
     "name": "Click Guide Visualizer",
-    "version": "v1.0.0",
-    "developer": "you",
+    "version": "v0.1.0",
+    "developer": "GeekedGDPlayer",
     "description": "Draws a macro's upcoming inputs onto the level ahead of the player.",
     "tags": [
         "gameplay",
@@ -210,7 +210,7 @@
             "type": "bool",
             "default": false,
             "name": "Rhythm Mode",
-            "description": "Show a fixed on-screen lane where notes scroll toward a hit line, instead of drawing bands into the level."
+            "description": "Show a fixed on-screen column where notes fall toward a judgement line, instead of drawing bands into the level."
         },
         "rhythm-hide-world-guide": {
             "type": "bool",
@@ -224,53 +224,53 @@
             "min": 0.25,
             "max": 8.0,
             "name": "Lead Time (seconds)",
-            "description": "How far ahead notes appear. Lower is faster and harder to read.",
+            "description": "How far ahead notes appear, in seconds. Lower means they fall faster and are harder to read.",
             "control": {
                 "slider-step": 0.25
             }
         },
-        "rhythm-hit-x": {
+        "rhythm-lane-x": {
             "type": "float",
-            "default": 0.25,
-            "min": 0.05,
-            "max": 0.95,
-            "name": "Hit Line Position",
-            "description": "Horizontal position of the hit line, as a fraction of screen width.",
-            "control": {
-                "slider-step": 0.05
-            }
-        },
-        "rhythm-lane-y": {
-            "type": "float",
-            "default": 0.82,
+            "default": 0.5,
             "min": 0.0,
             "max": 1.0,
-            "name": "Lane Height",
-            "description": "Vertical position of the lane on screen.",
+            "name": "Lane Position",
+            "description": "Horizontal position of the column on screen, as a fraction of screen width. 0.5 is centred.",
             "control": {
                 "slider-step": 0.02
             }
         },
-        "rhythm-lane-height": {
+        "rhythm-lane-width": {
             "type": "float",
-            "default": 70.0,
-            "min": 20.0,
-            "max": 300.0,
-            "name": "Lane Thickness",
-            "description": "How tall the lane strip is, in pixels.",
+            "default": 220.0,
+            "min": 60.0,
+            "max": 700.0,
+            "name": "Lane Width",
+            "description": "How wide the column is, in pixels. Notes and the judgement line span the full width.",
             "control": {
-                "slider-step": 5.0
+                "slider-step": 10.0
             }
         },
-        "rhythm-note-width": {
+        "rhythm-hit-y": {
             "type": "float",
-            "default": 10.0,
-            "min": 1.0,
-            "max": 60.0,
-            "name": "Note Width",
-            "description": "How thick each note block is, in pixels. Lower is thinner.",
+            "default": 0.5,
+            "min": 0.05,
+            "max": 0.95,
+            "name": "Judgement Line Height",
+            "description": "Vertical position of the judgement line, as a fraction of screen height. 0.5 is the middle of the screen.",
             "control": {
-                "slider-step": 1.0
+                "slider-step": 0.02
+            }
+        },
+        "rhythm-note-thickness": {
+            "type": "float",
+            "default": 22.0,
+            "min": 4.0,
+            "max": 90.0,
+            "name": "Note Thickness",
+            "description": "How tall each note bar is, in pixels. Notes always span the full lane width.",
+            "control": {
+                "slider-step": 2.0
             }
         },
         "rhythm-lane-opacity": {
@@ -279,7 +279,7 @@
             "min": 0.0,
             "max": 1.0,
             "name": "Lane Opacity",
-            "description": "Opacity of the lane background strip.",
+            "description": "Opacity of the column background.",
             "control": {
                 "slider-step": 0.05
             }

@@ -40,11 +40,11 @@ struct Snapshot {
     bool clipBandsAtLine = false;
 
     bool rhythmMode = false;
-    float rhythmLaneY = 0.82f;
-    float rhythmLaneHeight = 70.f;
-    float rhythmHitX = 0.25f;
+    float rhythmLaneX = 0.5f;
+    float rhythmLaneWidth = 220.f;
+    float rhythmHitY = 0.5f;
     float rhythmLeadTime = 2.0f;
-    float rhythmNoteWidth = 10.f;
+    float rhythmNoteThickness = 22.f;
     float rhythmLaneOpacity = 0.5f;
     bool rhythmHideWorldGuide = true;
     bool rhythmHitEffects = true;

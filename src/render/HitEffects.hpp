@@ -10,7 +10,7 @@
 namespace cgv {
 
 struct HitEffect {
-    float screenX = 0.f;
+    float screenY = 0.f;
     float age = 0.f;
     float lifetime = 0.25f;
     bool player2 = false;
@@ -19,15 +19,15 @@ struct HitEffect {
 };
 
 constexpr size_t kMaxHitEffects = 16;
-constexpr float kRingStartScale = 0.9f;
-constexpr float kRingEndScale = 3.4f;
+constexpr float kRingStartScale = 1.f;
+constexpr float kRingEndScale = 1.75f;
 constexpr float kBurstSpokeCount = 6.f;
-constexpr float kBurstSpokeLength = 26.f;
+constexpr float kBurstSpokeLength = 30.f;
 constexpr float kShrinkFloor = 0.15f;
 
 class HitEffects {
 public:
-    void spawn(float screenX, bool player2, int deltaFrames, float lifetime);
+    void spawn(float screenY, bool player2, int deltaFrames, float lifetime);
     void advance(float deltaSeconds);
     void clear();
 
