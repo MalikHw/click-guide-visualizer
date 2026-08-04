@@ -18,6 +18,18 @@ bool pathPointsAtReadableFile(std::filesystem::path const& path) {
     return std::filesystem::is_regular_file(path, code) && !code;
 }
 
+std::string dismissedMacro() {
+    auto* mod = Mod::get();
+    if (!mod) return {};
+    return mod->getSavedValue<std::string>(kDismissedMacroSavedKey);
+}
+
+void dismissMacro(std::string value) {
+    auto* mod = Mod::get();
+    if (!mod) return;
+    mod->setSavedValue<std::string>(kDismissedMacroSavedKey, std::move(value));
+}
+
 } // namespace
 
 bool settingPathIsPlaceholder(std::filesystem::path const& path) {
@@ -36,11 +48,23 @@ void rememberLoadedMacro(std::filesystem::path const& path) {
     auto* mod = Mod::get();
     if (!mod) return;
     mod->setSavedValue<std::string>(kLastMacroSavedKey, path.string());
+    dismissMacro({});
+}
+
+void forgetLoadedMacro() {
+    auto* mod = Mod::get();
+    if (!mod) return;
+
+    auto chosen = macroFileSettingPath().string();
+    mod->setSavedValue<std::string>(kLastMacroSavedKey, std::string{});
+    dismissMacro(chosen);
 }
 
 bool loadMacroFromSetting(std::string& errorOut) {
     auto path = macroFileSettingPath();
     if (settingPathIsPlaceholder(path)) return false;
+
+    if (path.string() == dismissedMacro()) return false;
 
     if (MacroStore::get().path() == path && MacroStore::get().hasMacro()) return false;
 

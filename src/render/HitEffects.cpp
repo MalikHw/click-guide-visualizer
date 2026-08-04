@@ -22,7 +22,7 @@ float easeOutCubic(float progress) {
 }
 
 ccColor3B effectColor(HitEffect const& effect, Snapshot const& config) {
-    if (effect.player2) return kPlayerTwoColor;
+    if (effect.player2) return config.playerTwoColor;
     return judgementColor(effect.deltaFrames);
 }
 
@@ -144,7 +144,7 @@ void HitEffects::paint(CCDrawNode* node, LaneLayout const& layout, Snapshot cons
 
         float shrink = std::max(1.f - eased, kShrinkFloor);
         drawShrinkingNote(node, layout, centreX, centreY, shrink,
-                          withAlpha(kAccentWhite, alpha * kFlashAlpha));
+                          withAlpha(config.markerColor, alpha * kFlashAlpha));
     }
 }
 

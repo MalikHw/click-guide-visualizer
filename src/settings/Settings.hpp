@@ -10,10 +10,15 @@ namespace cgv {
 struct Snapshot {
     bool showGuide = true;
     cocos2d::ccColor3B lineColor{0, 255, 156};
+    cocos2d::ccColor3B playerTwoColor{255, 150, 40};
+    cocos2d::ccColor3B holdColor{0, 255, 156};
+    cocos2d::ccColor3B markerColor{255, 255, 255};
+    cocos2d::ccColor3B judgementLineColor{255, 255, 255};
 
     float indicatorOpacity = 0.75f;
     float bandOpacity = 0.55f;
     float fillOpacity = 0.35f;
+    float holdOpacity = 1.f;
     float borderOpacity = 0.9f;
     float borderWidth = 1.5f;
     float lineOpacity = 0.85f;

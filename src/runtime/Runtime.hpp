@@ -9,7 +9,6 @@
 namespace cgv {
 
 struct PressEvent {
-    int frame = 0;
     bool player2 = false;
 };
 
@@ -26,6 +25,7 @@ struct Judgement {
     float levelY = 0.f;
     int deltaFrames = 0;
     float remainingSeconds = 0.f;
+    bool provisional = false;
 };
 
 constexpr size_t kMaxQueuedPresses = 32;
@@ -38,7 +38,7 @@ class Runtime {
 public:
     static Runtime& get();
 
-    void queuePress(int frame, bool player2);
+    void queuePress(bool player2);
     std::vector<PressEvent> drainPresses();
     void clearPresses();
 

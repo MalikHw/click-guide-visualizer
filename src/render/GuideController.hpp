@@ -58,6 +58,7 @@ private:
     Viewport computeViewport() const;
     float resolveMarkerY(Marker const& marker, Viewport const& view);
     double currentMacroFrame() const;
+    double effectiveTickRate() const;
     void publishAlignmentReport() const;
     bool gamemodeAllowed() const;
 

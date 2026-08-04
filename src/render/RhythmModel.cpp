@@ -54,6 +54,7 @@ std::vector<RhythmNote> buildRhythmTimeline(ReplayData const& replay, double off
     std::stable_sort(timeline.begin(), timeline.end(),
                      [](RhythmNote const& a, RhythmNote const& b) { return a.hitTime < b.hitTime; });
 
+    assignNoteSpacing(timeline);
     return timeline;
 }
 
@@ -84,7 +85,31 @@ std::vector<RhythmNote> timelineFromHolds(std::vector<double> const& times,
     std::stable_sort(timeline.begin(), timeline.end(),
                      [](RhythmNote const& a, RhythmNote const& b) { return a.hitTime < b.hitTime; });
 
+    assignNoteSpacing(timeline);
     return timeline;
+}
+
+void assignNoteSpacing(std::vector<RhythmNote>& timeline) {
+    for (size_t index = 0; index < timeline.size(); ++index) {
+        double gap = kUnlimitedGapSeconds;
+
+        for (size_t ahead = index + 1; ahead < timeline.size(); ++ahead) {
+            if (timeline[ahead].player2 != timeline[index].player2) continue;
+            gap = timeline[ahead].hitTime - timeline[index].hitTime;
+            break;
+        }
+
+        if (index > 0) {
+            for (size_t behind = index; behind-- > 0;) {
+                if (timeline[behind].player2 != timeline[index].player2) continue;
+                gap = std::min(gap, timeline[index].hitTime - timeline[behind].hitTime);
+                break;
+            }
+        }
+
+        if (!std::isfinite(gap) || gap <= 0.0) gap = kUnlimitedGapSeconds;
+        timeline[index].gapToNext = gap;
+    }
 }
 
 size_t firstNoteAtOrAfter(std::vector<RhythmNote> const& timeline, double time) {

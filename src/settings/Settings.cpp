@@ -47,10 +47,15 @@ void SettingsCache::refresh() {
 
     next.showGuide = boolSetting("show-guide", true);
     next.lineColor = mod->getSettingValue<ccColor3B>("line-color");
+    next.playerTwoColor = mod->getSettingValue<ccColor3B>("player2-color");
+    next.holdColor = mod->getSettingValue<ccColor3B>("hold-color");
+    next.markerColor = mod->getSettingValue<ccColor3B>("marker-color");
+    next.judgementLineColor = mod->getSettingValue<ccColor3B>("judgement-line-color");
 
     next.indicatorOpacity = clampUnit(floatSetting("indicator-opacity", 0.75));
     next.bandOpacity = clampUnit(floatSetting("band-opacity", 0.55));
     next.fillOpacity = clampUnit(floatSetting("fill-opacity", 0.35));
+    next.holdOpacity = clampUnit(floatSetting("hold-opacity", 1.0));
     next.borderOpacity = clampUnit(floatSetting("border-opacity", 0.9));
     next.borderWidth = clampRange(floatSetting("border-width", 1.5), 0.0, 10.0, 1.5);
     next.lineOpacity = clampUnit(floatSetting("line-opacity", 0.85));

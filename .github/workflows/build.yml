@@ -169,7 +169,7 @@ jobs:
           print('archive intact,', len(data), 'bytes')
           PYEOF
 
-      - name: Confirm the logo and about page are packaged
+      - name: Confirm the logo, about page and changelog are packaged
         run: |
           set -euo pipefail
           cd packaged/unpacked
@@ -198,6 +198,13 @@ jobs:
             echo "ok   about.md present, $(wc -l < about.md) lines"
           else
             echo "::error::about.md missing from the package"
+            FAILED=1
+          fi
+
+          if [ -f changelog.md ]; then
+            echo "ok   changelog.md present, $(wc -l < changelog.md) lines"
+          else
+            echo "::error::changelog.md missing from the package"
             FAILED=1
           fi
 

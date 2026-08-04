@@ -142,7 +142,7 @@ void GuideController::rebuildGeometry() {
     }
 
     PlayLayer* layer = m_layer;
-    double tickRate = data->framerate > 0.0 ? data->framerate : kDefaultTickRate;
+    double tickRate = effectiveTickRate();
 
     PositionResolver resolver = [layer, tickRate](double frame) -> float {
         if (frame < 0.0) frame = 0.0;
@@ -212,7 +212,7 @@ void GuideController::rebuildRhythmTimeline() {
         return;
     }
 
-    double tickRate = data->framerate > 0.0 ? data->framerate : kDefaultTickRate;
+    double tickRate = effectiveTickRate();
     double offsetSeconds = m_alignment.offsetFrames() / tickRate;
     m_rhythmLane.rebuild(buildRhythmTimeline(*data, offsetSeconds));
     publishAssistTargets();
@@ -238,11 +238,15 @@ void GuideController::publishAlignmentReport() const {
     Runtime::get().setAlignmentReport(report);
 }
 
-double GuideController::currentMacroFrame() const {
+double GuideController::effectiveTickRate() const {
     auto data = MacroStore::get().data();
-    if (!data || !m_layer) return 0.0;
-    double tickRate = data->framerate > 0.0 ? data->framerate : kDefaultTickRate;
-    return m_layer->m_attemptTime * tickRate;
+    double tickRate = (data && data->framerate > 0.0) ? data->framerate : kDefaultTickRate;
+    return tickRate * m_alignment.rateScale();
+}
+
+double GuideController::currentMacroFrame() const {
+    if (!m_layer) return 0.0;
+    return m_layer->m_attemptTime * effectiveTickRate();
 }
 
 bool GuideController::gamemodeAllowed() const {
@@ -258,7 +262,7 @@ void GuideController::consumePresses() {
     if (!data) return;
 
     auto const& config = settings();
-    double tickRate = data->framerate > 0.0 ? data->framerate : kDefaultTickRate;
+    double tickRate = effectiveTickRate();
     double playerFrame = currentMacroFrame();
     double window = m_alignment.windowSeconds() * tickRate;
 
@@ -295,16 +299,26 @@ void GuideController::consumePresses() {
                 m_geometryValid = false;
                 searching = false;
             }
-            continue;
         }
 
         if (!matched) continue;
+
+        if (!searching) {
+            m_alignment.observeResidual(bestDelta, m_layer->m_attemptTime);
+            if (m_alignment.driftDetected()) {
+                log::info("{} Timing drift detected, remeasuring (rate scale {:.4f})", kLogTag,
+                          m_alignment.rateScale());
+                m_geometryValid = false;
+                publishAlignmentReport();
+            }
+        }
 
         m_rhythmLane.consumeNearestNote(m_layer->m_attemptTime, press.player2,
                                         static_cast<int>(std::lround(bestDelta)));
         m_rhythmLane.registerHit();
 
         if (!config.showAccuracy) continue;
+        if (searching && !m_alignment.provisionalTrustworthy()) continue;
 
         PlayerObject* player = press.player2 ? m_layer->m_player2 : m_layer->m_player1;
         if (!player) continue;
@@ -313,6 +327,7 @@ void GuideController::consumePresses() {
         judgement.levelX = player->getPositionX();
         judgement.levelY = player->getPositionY();
         judgement.deltaFrames = static_cast<int>(std::lround(bestDelta));
+        judgement.provisional = searching;
         Runtime::get().addJudgement(judgement);
     }
 }
@@ -435,7 +450,8 @@ void GuideController::drawLabels() {
     for (auto const& judgement : Runtime::get().judgements()) {
         m_labels.place(judgement.levelX, judgement.levelY,
                        judgement.deltaFrames,
-                       judgement.remainingSeconds / kJudgementLifetimeSeconds);
+                       judgement.remainingSeconds / kJudgementLifetimeSeconds,
+                       judgement.provisional);
     }
     m_labels.endFrame();
 }

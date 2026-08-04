@@ -1,6 +1,7 @@
 #include "RhythmPainter.hpp"
 
 #include "render/GuidePainter.hpp"
+#include "render/RhythmModel.hpp"
 
 #include <algorithm>
 
@@ -19,6 +20,8 @@ constexpr float kFlashAlphaGain = 0.55f;
 constexpr float kHoldBodyInsetScale = 0.28f;
 constexpr float kNoteEdgeInset = 3.f;
 constexpr float kPlayerTwoInsetScale = 0.22f;
+constexpr float kSpacingUsageFraction = 0.62f;
+constexpr float kMinimumNoteHalfThickness = 1.5f;
 constexpr float kNoteHeadBrighten = 0.25f;
 constexpr float kWindowFillAlpha = 0.18f;
 constexpr ccColor3B kLaneBackdrop{10, 12, 18};
@@ -67,6 +70,16 @@ LaneLayout computeLaneLayout(CCSize const& windowSize, Snapshot const& config) {
     return layout;
 }
 
+float noteHalfThicknessFor(LaneLayout const& layout, double gapSeconds, float pixelsPerSecond) {
+    float preferred = layout.noteHalfHeight;
+    if (gapSeconds >= kUnlimitedGapSeconds || pixelsPerSecond <= 0.f) return preferred;
+
+    float spacingPixels = static_cast<float>(gapSeconds) * pixelsPerSecond;
+    float allowed = spacingPixels * kSpacingUsageFraction * 0.5f;
+
+    return std::max(kMinimumNoteHalfThickness, std::min(preferred, allowed));
+}
+
 void RhythmPainter::paintLaneBackground(CCDrawNode* node, LaneLayout const& layout, Snapshot const& config) {
     ccColor3B base = config.lineColor;
     float alpha = config.rhythmLaneOpacity;
@@ -92,28 +105,49 @@ void RhythmPainter::paintTimingWindow(CCDrawNode* node, LaneLayout const& layout
              withAlpha(kWindowColor, kWindowFillAlpha), 0.f, withAlpha(kWindowColor, 0.f));
 }
 
-void RhythmPainter::paintNote(CCDrawNode* node, LaneLayout const& layout, Snapshot const& config,
-                              float hitLineY, float releaseY, bool isHold, bool player2, float alphaScale) {
-    ccColor3B base = player2 ? kPlayerTwoColor : config.lineColor;
+void RhythmPainter::paintHoldBody(CCDrawNode* node, LaneLayout const& layout, Snapshot const& config,
+                                  float hitLineY, float releaseY, bool player2, float alphaScale,
+                                  float halfThickness) {
+    ccColor3B base = player2 ? config.playerTwoColor : config.holdColor;
+
+    float left = noteLeftEdge(layout, player2);
+    float right = noteRightEdge(layout, player2);
+    float inset = (right - left) * kHoldBodyInsetScale * 0.5f;
+
+    float bottom = std::max(hitLineY + halfThickness, layout.laneBottom);
+    float top = std::min(releaseY, layout.laneTop);
+    if (top <= bottom) return;
+
+    float fill = config.indicatorOpacity * config.fillOpacity * alphaScale * config.holdOpacity;
+    float border = config.indicatorOpacity * config.borderOpacity * alphaScale * config.holdOpacity;
+
+    fillRect(node, left + inset, bottom, right - inset, top,
+             withAlpha(base, fill), config.borderWidth, withAlpha(base, border));
+}
+
+void RhythmPainter::paintNoteHead(CCDrawNode* node, LaneLayout const& layout, Snapshot const& config,
+                                  float hitLineY, bool player2, float alphaScale, float halfThickness) {
+    ccColor3B base = player2 ? config.playerTwoColor : config.lineColor;
 
     float left = noteLeftEdge(layout, player2);
     float right = noteRightEdge(layout, player2);
 
-    float fillAlpha = config.indicatorOpacity * config.fillOpacity * alphaScale;
-    float borderAlpha = config.indicatorOpacity * config.borderOpacity * alphaScale;
+    float fill = config.indicatorOpacity * config.fillOpacity * alphaScale;
+    float border = config.indicatorOpacity * config.borderOpacity * alphaScale;
 
-    if (isHold) {
-        float bodyInset = (right - left) * kHoldBodyInsetScale * 0.5f;
-        float bodyBottom = std::max(hitLineY, layout.laneBottom);
-        float bodyTop = std::min(releaseY, layout.laneTop);
-        fillRect(node, left + bodyInset, bodyBottom, right - bodyInset, bodyTop,
-                 withAlpha(base, fillAlpha), config.borderWidth, withAlpha(base, borderAlpha));
-    }
-
-    fillRect(node, left, hitLineY - layout.noteHalfHeight, right, hitLineY + layout.noteHalfHeight,
-             withAlpha(base, fillAlpha + config.fillOpacity * alphaScale * kNoteHeadBrighten),
+    fillRect(node, left, hitLineY - halfThickness, right, hitLineY + halfThickness,
+             withAlpha(base, fill + config.fillOpacity * alphaScale * kNoteHeadBrighten),
              config.borderWidth,
-             withAlpha(kAccentWhite, borderAlpha));
+             withAlpha(config.markerColor, border));
+}
+
+void RhythmPainter::paintNote(CCDrawNode* node, LaneLayout const& layout, Snapshot const& config,
+                              float hitLineY, float releaseY, bool isHold, bool player2, float alphaScale,
+                              float halfThickness) {
+    if (isHold) {
+        paintHoldBody(node, layout, config, hitLineY, releaseY, player2, alphaScale, halfThickness);
+    }
+    paintNoteHead(node, layout, config, hitLineY, player2, alphaScale, halfThickness);
 }
 
 void RhythmPainter::paintHitLine(CCDrawNode* node, LaneLayout const& layout, Snapshot const& config,
@@ -124,7 +158,8 @@ void RhythmPainter::paintHitLine(CCDrawNode* node, LaneLayout const& layout, Sna
 
     fillRect(node, layout.centerX - layout.halfWidth - kHitLineOverhang, layout.hitY - halfThickness,
              layout.centerX + layout.halfWidth + kHitLineOverhang, layout.hitY + halfThickness,
-             withAlpha(kAccentWhite, alpha), 0.f, withAlpha(kAccentWhite, 0.f));
+             withAlpha(config.judgementLineColor, alpha), 0.f,
+             withAlpha(config.judgementLineColor, 0.f));
 }
 
 } // namespace cgv

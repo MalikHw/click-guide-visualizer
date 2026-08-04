@@ -8,7 +8,7 @@
     },
     "id": "you.click-guide-visualizer",
     "name": "Click Guide Visualizer",
-    "version": "v0.2.0",
+    "version": "v0.4.3",
     "developer": "GeekedGDPlayer",
     "description": "Draws a macro's upcoming inputs onto the level ahead of the player.",
     "links": {
@@ -27,27 +27,51 @@
     "settings": {
         "visuals-title": {
             "type": "title",
-            "name": "Visuals"
+            "name": "Look"
         },
         "show-guide": {
             "type": "bool",
             "default": true,
-            "name": "Show Guide",
-            "description": "Master switch for the whole overlay."
+            "name": "Show The Guide",
+            "description": "Master switch. Turn this off to hide everything."
         },
         "line-color": {
             "type": "color",
             "default": "#00FF9C",
-            "name": "Guide Color",
-            "description": "Colour used for player 1 bands and markers."
+            "name": "Main Colour",
+            "description": "Colour of the bars and notes for player 1."
+        },
+        "player2-color": {
+            "type": "color",
+            "default": "#FF9628",
+            "name": "Player 2 Colour",
+            "description": "Colour used in dual parts."
+        },
+        "hold-color": {
+            "type": "color",
+            "default": "#00FF9C",
+            "name": "Hold Colour",
+            "description": "Colour of the long bars you hold down for."
+        },
+        "marker-color": {
+            "type": "color",
+            "default": "#FFFFFF",
+            "name": "Click Dot Colour",
+            "description": "Colour of the small dots that mark each click."
+        },
+        "judgement-line-color": {
+            "type": "color",
+            "default": "#FFFFFF",
+            "name": "Hit Line Colour",
+            "description": "Colour of the line you time your clicks against."
         },
         "indicator-opacity": {
             "type": "float",
             "default": 0.75,
             "min": 0.0,
             "max": 1.0,
-            "name": "Indicator Opacity",
-            "description": "Overall opacity of markers, the player line and the path.",
+            "name": "Note Fade",
+            "description": "How see-through the notes and click dots are. Lower is fainter.",
             "control": {
                 "slider-step": 0.05
             }
@@ -57,8 +81,8 @@
             "default": 0.55,
             "min": 0.0,
             "max": 1.0,
-            "name": "Band Opacity",
-            "description": "Overall opacity of hold bands.",
+            "name": "Bar Fade",
+            "description": "How see-through the bars drawn in the level are.",
             "control": {
                 "slider-step": 0.05
             }
@@ -68,8 +92,19 @@
             "default": 0.35,
             "min": 0.0,
             "max": 1.0,
-            "name": "Fill Opacity",
-            "description": "Opacity of the shape interior, multiplied by the element opacity.",
+            "name": "Inside Fade",
+            "description": "How see-through the inside of every shape is. The outlines stay.",
+            "control": {
+                "slider-step": 0.05
+            }
+        },
+        "hold-opacity": {
+            "type": "float",
+            "default": 1.0,
+            "min": 0.0,
+            "max": 1.0,
+            "name": "Hold Fade",
+            "description": "How see-through the long hold bars are. Nothing else changes.",
             "control": {
                 "slider-step": 0.05
             }
@@ -79,8 +114,8 @@
             "default": 0.9,
             "min": 0.0,
             "max": 1.0,
-            "name": "Border Opacity",
-            "description": "Opacity of the outline, independent of the fill.",
+            "name": "Outline Fade",
+            "description": "How see-through the outlines are.",
             "control": {
                 "slider-step": 0.05
             }
@@ -90,8 +125,8 @@
             "default": 1.5,
             "min": 0.0,
             "max": 10.0,
-            "name": "Border Width",
-            "description": "Outline thickness in level units.",
+            "name": "Outline Thickness",
+            "description": "How thick the outlines are.",
             "control": {
                 "slider-step": 0.1
             }
@@ -101,8 +136,8 @@
             "default": 0.85,
             "min": 0.0,
             "max": 1.0,
-            "name": "Line Opacity",
-            "description": "Opacity of the white press and player lines.",
+            "name": "Line Fade",
+            "description": "How see-through the lines are.",
             "control": {
                 "slider-step": 0.05
             }
@@ -112,8 +147,8 @@
             "default": 0.8,
             "min": 0.05,
             "max": 10.0,
-            "name": "Line Width",
-            "description": "Width of the press line drawn inside a band.",
+            "name": "Line Thickness",
+            "description": "How thick the lines are.",
             "control": {
                 "slider-step": 0.05
             }
@@ -121,16 +156,16 @@
         "show-player-line": {
             "type": "bool",
             "default": true,
-            "name": "Show Player Line",
-            "description": "Draw a vertical line through the player to line up against bands."
+            "name": "Show Line At Player",
+            "description": "Draw a line where your player is right now."
         },
         "line-lead-units": {
             "type": "float",
             "default": 0.0,
             "min": 0.0,
             "max": 600.0,
-            "name": "Line Lead (units)",
-            "description": "Move the player line forward, ahead of your position, in level units. 0 keeps it on the player.",
+            "name": "Move Line Ahead",
+            "description": "Push the line this far in front of your player.",
             "control": {
                 "slider-step": 5.0
             }
@@ -140,8 +175,8 @@
             "default": 0.0,
             "min": 0.0,
             "max": 3.0,
-            "name": "Line Lead (seconds)",
-            "description": "Move the line forward by a time gap instead. Added on top of the units value, and stays consistent through speed changes.",
+            "name": "Move Line Ahead (time)",
+            "description": "Push the line this many seconds in front of your player.",
             "control": {
                 "slider-step": 0.05
             }
@@ -149,22 +184,22 @@
         "clip-bands-at-line": {
             "type": "bool",
             "default": false,
-            "name": "Clip Bands At Line",
-            "description": "Off: bands disappear as you pass them. On: bands disappear as the lead line passes them, so nothing is drawn behind the line."
+            "name": "Cut Bars At The Line",
+            "description": "Hide the part of each bar that is behind the line."
         },
         "show-band-lines": {
             "type": "bool",
             "default": true,
-            "name": "Show Press Lines",
-            "description": "Draw the exact press instant inside each band."
+            "name": "Show Click Lines",
+            "description": "Draw a thin line inside each bar showing the exact click."
         },
         "cull-padding": {
             "type": "float",
             "default": 0.0,
             "min": 0.0,
             "max": 2000.0,
-            "name": "Cull Padding",
-            "description": "Extra level units drawn beyond the camera edge.",
+            "name": "Draw Distance",
+            "description": "How far off screen to keep drawing. Higher costs more performance.",
             "control": {
                 "slider-step": 10.0
             }
@@ -172,43 +207,54 @@
         "show-accuracy": {
             "type": "bool",
             "default": true,
-            "name": "Show Accuracy",
-            "description": "Show floating frame-difference labels when you click."
+            "name": "Show How Early Or Late",
+            "description": "Show a number after each click telling you how many frames off you were."
         },
         "show-clicks": {
             "type": "bool",
             "default": true,
-            "name": "Show Click Markers",
-            "description": "Draw a small box at each press point."
+            "name": "Show Click Dots",
+            "description": "Show a dot at each click."
         },
         "marker-row": {
             "type": "float",
             "default": 0.5,
             "min": 0.0,
             "max": 1.0,
-            "name": "Marker Row",
-            "description": "Vertical placement of markers when no height data is available.",
+            "name": "Dot Height",
+            "description": "How high above the ground the dots sit.",
             "control": {
                 "slider-step": 0.05
+            }
+        },
+        "marker-size": {
+            "type": "float",
+            "default": 7.0,
+            "min": 1.0,
+            "max": 60.0,
+            "name": "Click Dot Size",
+            "description": "How big the click dots are.",
+            "control": {
+                "slider-step": 0.5
             }
         },
         "learn-trajectory": {
             "type": "bool",
             "default": true,
-            "name": "Learn Trajectory",
-            "description": "Remember heights observed on earlier runs and reuse them."
+            "name": "Learn From Your Runs",
+            "description": "Remember where you actually were, so the guide lines up better next try."
         },
         "predict-heights": {
             "type": "bool",
             "default": false,
-            "name": "Predict Heights",
-            "description": "Project forward physics to place markers. Costly and ignores pads and portals."
+            "name": "Guess Your Height",
+            "description": "Work out how high you will be at each click instead of using a fixed height."
         },
         "show-path": {
             "type": "bool",
             "default": false,
-            "name": "Show Predicted Path",
-            "description": "Draw the projected trajectory line. Requires height prediction."
+            "name": "Show Flight Path",
+            "description": "Draw the line your player will follow. Needs Guess Your Height on."
         },
         "rhythm-title": {
             "type": "title",
@@ -217,22 +263,22 @@
         "rhythm-mode": {
             "type": "bool",
             "default": false,
-            "name": "Rhythm Mode",
-            "description": "Show a fixed on-screen column where notes fall toward a judgement line, instead of drawing bands into the level."
+            "name": "Use Rhythm Mode",
+            "description": "Show a falling note column in the middle of the screen instead of drawing on the level."
         },
         "rhythm-hide-world-guide": {
             "type": "bool",
             "default": true,
-            "name": "Hide In-Level Guide",
-            "description": "While rhythm mode is on, stop drawing the bands and markers in the level itself."
+            "name": "Hide The Level Guide",
+            "description": "While rhythm mode is on, stop drawing bars on the level."
         },
         "rhythm-lead-time": {
             "type": "float",
             "default": 2.0,
             "min": 0.25,
             "max": 8.0,
-            "name": "Lead Time (seconds)",
-            "description": "How far ahead notes appear, in seconds. Lower means they fall faster and are harder to read.",
+            "name": "How Far Ahead",
+            "description": "How many seconds of notes you can see. Lower means they fall faster.",
             "control": {
                 "slider-step": 0.25
             }
@@ -242,8 +288,8 @@
             "default": 0.5,
             "min": 0.0,
             "max": 1.0,
-            "name": "Lane Position",
-            "description": "Horizontal position of the column on screen, as a fraction of screen width. 0.5 is centred.",
+            "name": "Column Left Or Right",
+            "description": "Where the column sits across the screen. 0.5 is the middle.",
             "control": {
                 "slider-step": 0.02
             }
@@ -253,8 +299,8 @@
             "default": 220.0,
             "min": 60.0,
             "max": 700.0,
-            "name": "Lane Width",
-            "description": "How wide the column is, in pixels. Notes and the judgement line span the full width.",
+            "name": "Column Width",
+            "description": "How wide the column is.",
             "control": {
                 "slider-step": 10.0
             }
@@ -264,8 +310,8 @@
             "default": 0.5,
             "min": 0.05,
             "max": 0.95,
-            "name": "Judgement Line Height",
-            "description": "Vertical position of the judgement line, as a fraction of screen height. 0.5 is the middle of the screen.",
+            "name": "Hit Line Height",
+            "description": "Where the line you aim for sits. 0.5 is the middle of the screen.",
             "control": {
                 "slider-step": 0.02
             }
@@ -275,8 +321,8 @@
             "default": 22.0,
             "min": 4.0,
             "max": 90.0,
-            "name": "Note Thickness",
-            "description": "How tall each note bar is, in pixels. Notes always span the full lane width.",
+            "name": "Note Height",
+            "description": "How tall each note is. Notes get thinner on their own when clicks are close together.",
             "control": {
                 "slider-step": 2.0
             }
@@ -286,8 +332,8 @@
             "default": 0.5,
             "min": 0.0,
             "max": 1.0,
-            "name": "Lane Opacity",
-            "description": "Opacity of the column background.",
+            "name": "Column Fade",
+            "description": "How see-through the column background is.",
             "control": {
                 "slider-step": 0.05
             }
@@ -296,28 +342,28 @@
             "type": "bool",
             "default": true,
             "name": "Hit Animation",
-            "description": "Play a burst animation when you hit a note, instead of the note just vanishing."
+            "description": "Play a burst when you click instead of the note just vanishing."
         },
         "rhythm-hit-effect-time": {
             "type": "float",
             "default": 0.25,
             "min": 0.05,
             "max": 1.0,
-            "name": "Hit Animation Length",
-            "description": "How long the burst lasts, in seconds.",
+            "name": "Animation Length",
+            "description": "How long the burst lasts.",
             "control": {
                 "slider-step": 0.05
             }
         },
         "generate-title": {
             "type": "title",
-            "name": "Auto-Generate Notes"
+            "name": "Make Notes From Level"
         },
         "generate-from-level": {
             "type": "bool",
             "default": false,
-            "name": "Generate From Level",
-            "description": "Scan the level and work out the inputs with no macro file. Handles all eight gamemodes, portals and speed changes. Still approximate: it does not model pads, orbs or dual sections."
+            "name": "Make Notes Without A Macro",
+            "description": "Read the level and work out the clicks yourself. Rough, but works with no macro."
         },
         "generate-speed": {
             "type": "float",
@@ -325,34 +371,34 @@
             "min": 50.0,
             "max": 1200.0,
             "name": "Starting Speed",
-            "description": "Speed at the start of the level. Speed portals after that are detected automatically. 311.58 is normal 1x.",
+            "description": "Which speed portal the level starts on.",
             "control": {
                 "slider-step": 1.0
             }
         },
         "assist-title": {
             "type": "title",
-            "name": "Assist Mode"
+            "name": "Assist (Cheat)"
         },
         "enable-cheats": {
             "type": "bool",
             "default": false,
-            "name": "Enable Cheats",
-            "description": "Master switch for every feature that changes how the game plays. Leave this OFF to use the mod purely as a visual guide, so your progress and completions stay legitimate. Nothing below this has any effect while it is off."
+            "name": "Turn On Cheats",
+            "description": "Master switch for the cheat below. Off by default."
         },
         "assist-buffer-input": {
             "type": "bool",
             "default": false,
-            "name": "Buffer Early Jumps",
-            "description": "Requires Enable Cheats. If you click slightly early, the jump is held and fired at the correct frame instead. It cannot rescue a late click - once the moment has passed the physics has already happened. Modifies your input, so a completion with this on is not legitimate."
+            "name": "Hold Early Clicks",
+            "description": "If you click early, wait and fire it on the right frame. This is a cheat."
         },
         "assist-buffer-window": {
             "type": "float",
             "default": 0.25,
             "min": 0.02,
             "max": 1.0,
-            "name": "Buffer Window (seconds)",
-            "description": "How far ahead of a note an early click is still caught and held. Larger is more forgiving of early clicks.",
+            "name": "How Early To Allow",
+            "description": "The most time a click can be held for.",
             "control": {
                 "slider-step": 0.01
             }
@@ -360,12 +406,12 @@
         "assist-show-window": {
             "type": "bool",
             "default": true,
-            "name": "Show Buffer Window",
-            "description": "Draw the catch window ahead of the hit line. Only while cheats are enabled."
+            "name": "Show The Window",
+            "description": "Shade the area where an early click will be held."
         },
         "gamemodes-title": {
             "type": "title",
-            "name": "Gamemodes"
+            "name": "Turn On For"
         },
         "mode-cube": {
             "type": "bool",
@@ -409,7 +455,7 @@
         },
         "tuning-title": {
             "type": "title",
-            "name": "Tuning"
+            "name": "Sizes"
         },
         "line-thickness": {
             "type": "float",
@@ -417,37 +463,26 @@
             "min": 0.1,
             "max": 30.0,
             "name": "Player Line Thickness",
-            "description": "Thickness of the vertical line through the player.",
+            "description": "How thick the line at your player is.",
             "control": {
                 "slider-step": 0.1
-            }
-        },
-        "marker-size": {
-            "type": "float",
-            "default": 7.0,
-            "min": 1.0,
-            "max": 60.0,
-            "name": "Marker Size",
-            "description": "Edge length of a click marker box in level units.",
-            "control": {
-                "slider-step": 0.5
             }
         },
         "show-releases": {
             "type": "bool",
             "default": false,
-            "name": "Show Releases",
-            "description": "Also draw a marker where each hold is released."
+            "name": "Show Where To Let Go",
+            "description": "Mark where each hold ends, not just where it starts."
         },
         "macro-title": {
             "type": "title",
-            "name": "Macro"
+            "name": "Macro File"
         },
         "macro-file": {
             "type": "file",
             "default": "Pick a macro file",
-            "name": "Macro File",
-            "description": "Macro to visualise. Picking one here loads it immediately. Importing through the pause menu is usually easier.",
+            "name": "Pick A Macro",
+            "description": "Choose a macro file to show. The pause menu button is usually easier.",
             "control": {
                 "filters": [
                     {
@@ -465,20 +500,20 @@
         "auto-align": {
             "type": "bool",
             "default": true,
-            "name": "Auto Align",
-            "description": "Measure the offset between your clicks and the macro, then lock it in."
+            "name": "Line Up Automatically",
+            "description": "Work out on its own how far off the macro is and correct it."
         },
         "auto-load-macro": {
             "type": "bool",
             "default": true,
-            "name": "Auto Load Last Macro",
-            "description": "Reload the most recently used macro on startup."
+            "name": "Remember Last Macro",
+            "description": "Load the macro you used last time when the game starts."
         },
         "debug-log": {
             "type": "bool",
             "default": false,
-            "name": "Debug Logging",
-            "description": "Write extra diagnostics to the Geode log."
+            "name": "Extra Logging",
+            "description": "Write more detail to the Geode log. For bug reports."
         }
     }
 }

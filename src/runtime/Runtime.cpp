@@ -9,11 +9,11 @@ Runtime& Runtime::get() {
     return instance;
 }
 
-void Runtime::queuePress(int frame, bool player2) {
+void Runtime::queuePress(bool player2) {
     if (m_presses.size() >= kMaxQueuedPresses) {
         m_presses.erase(m_presses.begin());
     }
-    m_presses.push_back(PressEvent{frame, player2});
+    m_presses.push_back(PressEvent{player2});
 }
 
 std::vector<PressEvent> Runtime::drainPresses() {

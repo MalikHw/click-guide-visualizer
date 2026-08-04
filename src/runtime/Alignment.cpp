@@ -69,6 +69,30 @@ size_t distinctPressesIn(std::vector<Candidate> const& candidates) {
 
 } // namespace
 
+double slopeOf(std::vector<double> const& xs, std::vector<double> const& ys) {
+    if (xs.size() != ys.size() || xs.size() < 2) return 0.0;
+
+    double meanX = 0.0;
+    double meanY = 0.0;
+    for (size_t index = 0; index < xs.size(); ++index) {
+        meanX += xs[index];
+        meanY += ys[index];
+    }
+    meanX /= static_cast<double>(xs.size());
+    meanY /= static_cast<double>(ys.size());
+
+    double covariance = 0.0;
+    double variance = 0.0;
+    for (size_t index = 0; index < xs.size(); ++index) {
+        double dx = xs[index] - meanX;
+        covariance += dx * (ys[index] - meanY);
+        variance += dx * dx;
+    }
+
+    if (variance <= 0.0) return 0.0;
+    return covariance / variance;
+}
+
 double medianOf(std::vector<double> values) {
     if (values.empty()) return 0.0;
     size_t middle = values.size() / 2;
@@ -82,10 +106,68 @@ double medianOf(std::vector<double> values) {
 
 void Alignment::reset() {
     m_candidates.clear();
+    m_residuals.clear();
     m_presses = 0;
     m_support = 0;
     m_offsetFrames = 0.0;
+    m_rateScale = 1.0;
+    m_rateCorrected = false;
+    m_driftDetected = false;
     m_locked = false;
+}
+
+void Alignment::relock() {
+    m_candidates.clear();
+    m_residuals.clear();
+    m_presses = 0;
+    m_support = 0;
+    m_locked = false;
+}
+
+void Alignment::observeResidual(double residualFrames, double songSeconds) {
+    if (!m_locked) return;
+    if (!std::isfinite(residualFrames) || !std::isfinite(songSeconds)) return;
+
+    m_residuals.push_back(Residual{residualFrames, songSeconds});
+    if (m_residuals.size() > kDriftSampleCount) {
+        m_residuals.erase(m_residuals.begin());
+    }
+
+    evaluateDrift();
+}
+
+void Alignment::evaluateDrift() {
+    if (m_residuals.size() < kDriftSampleCount) return;
+
+    double elapsed = m_residuals.back().seconds - m_residuals.front().seconds;
+    if (elapsed < kMinRateCorrectionSeconds) return;
+
+    double spread = std::fabs(m_residuals.back().frames - m_residuals.front().frames);
+    if (spread < kDriftTriggerFrames) return;
+
+    std::vector<double> seconds;
+    std::vector<double> frames;
+    seconds.reserve(m_residuals.size());
+    frames.reserve(m_residuals.size());
+    for (auto const& residual : m_residuals) {
+        seconds.push_back(residual.seconds);
+        frames.push_back(residual.frames);
+    }
+
+    double framesPerSecond = slopeOf(seconds, frames);
+    if (!std::isfinite(framesPerSecond) || framesPerSecond == 0.0) return;
+
+
+    double correction = 1.0 + framesPerSecond / kAssumedTickRate;
+    if (!std::isfinite(correction)) return;
+
+    double proposed = m_rateScale * correction;
+    if (proposed < 1.0 - kMaxRateCorrection || proposed > 1.0 + kMaxRateCorrection) return;
+
+    m_rateScale = proposed;
+    m_driftDetected = true;
+    m_rateCorrected = true;
+    relock();
 }
 
 void Alignment::addCandidates(std::vector<double> const& deltas) {
@@ -100,6 +182,21 @@ void Alignment::addCandidates(std::vector<double> const& deltas) {
     }
 
     tryLock();
+}
+
+bool Alignment::provisionalTrustworthy() const {
+    if (m_locked) return true;
+    if (m_presses < kMinPressesBeforeProvisional) return false;
+    if (m_candidates.empty()) return false;
+
+    auto peak = gatherHeaviestBin(m_candidates);
+    if (peak.empty()) return false;
+
+    double centre = medianOf(deltasOf(peak));
+    if (std::fabs(centre) > kProvisionalAgreementFrames) return false;
+
+    auto kept = keepNearMedian(peak, centre);
+    return distinctPressesIn(kept) >= m_presses;
 }
 
 bool Alignment::tryLock() {

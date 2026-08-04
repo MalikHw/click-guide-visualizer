@@ -7,14 +7,18 @@
 
 namespace cgv {
 
+constexpr double kMinimumHoldSeconds = 0.05;
+constexpr double kUnlimitedGapSeconds = 1.0e9;
+
 struct RhythmNote {
     double hitTime = 0.0;
     double releaseTime = 0.0;
+    double gapToNext = kUnlimitedGapSeconds;
     bool player2 = false;
     bool isHold = false;
 };
 
-constexpr double kMinimumHoldSeconds = 0.05;
+void assignNoteSpacing(std::vector<RhythmNote>& timeline);
 
 std::vector<RhythmNote> buildRhythmTimeline(ReplayData const& replay, double offsetSeconds);
 std::vector<RhythmNote> timelineFromTimes(std::vector<double> const& times);

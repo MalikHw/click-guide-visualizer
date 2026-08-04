@@ -46,7 +46,8 @@ void JudgementLabels::beginFrame() {
     m_used = 0;
 }
 
-void JudgementLabels::place(float levelX, float levelY, int deltaFrames, float lifeRatio) {
+void JudgementLabels::place(float levelX, float levelY, int deltaFrames, float lifeRatio,
+                            bool provisional) {
     if (m_used >= m_pool.size()) return;
     if (!std::isfinite(levelX) || !std::isfinite(levelY)) return;
 
@@ -57,7 +58,10 @@ void JudgementLabels::place(float levelX, float levelY, int deltaFrames, float l
 
     label->setString(formatDelta(deltaFrames).c_str());
     label->setColor(judgementColor(deltaFrames));
-    label->setOpacity(static_cast<GLubyte>(clampedLife * 255.f));
+
+    float opacity = clampedLife * 255.f;
+    if (provisional) opacity *= kProvisionalOpacityScale;
+    label->setOpacity(static_cast<GLubyte>(opacity));
     label->setPosition(ccp(levelX, levelY + (1.f - clampedLife) * kLabelRiseUnits));
     label->setVisible(true);
 }

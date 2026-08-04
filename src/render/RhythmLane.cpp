@@ -148,8 +148,9 @@ void RhythmLane::drawNotes(double songTime, LaneLayout const& layout) {
             alphaScale = std::clamp(static_cast<float>((config.rhythmLeadTime - approach) / span), 0.f, 1.f);
         }
 
+        float halfThickness = noteHalfThicknessFor(layout, note.gapToNext, m_pixelsPerSecond);
         RhythmPainter::paintNote(m_node, layout, config, hitLineY, releaseY, note.isHold,
-                                 note.player2, alphaScale);
+                                 note.player2, alphaScale, halfThickness);
     }
 }
 
@@ -198,7 +199,8 @@ void RhythmLane::update(double songTime, float deltaSeconds) {
         for (auto const& judgement : Runtime::get().judgements()) {
             float life = judgement.remainingSeconds / kJudgementLifetimeSeconds;
             m_labels.place(layout.centerX + layout.halfWidth + kLabelSideMargin,
-                           layout.hitY + kLabelRiseAboveLine, judgement.deltaFrames, life);
+                           layout.hitY + kLabelRiseAboveLine, judgement.deltaFrames, life,
+                           judgement.provisional);
         }
     }
     m_labels.endFrame();

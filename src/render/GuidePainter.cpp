@@ -18,7 +18,7 @@ constexpr float kTrajectoryAlphaScale = 0.7f;
 constexpr size_t kTrajectoryStride = 4;
 
 ccColor3B colorForOwner(bool player2, Snapshot const& config) {
-    return player2 ? kPlayerTwoColor : config.lineColor;
+    return player2 ? config.playerTwoColor : config.lineColor;
 }
 
 void drawVerticalLine(CCDrawNode* node, float x, float bottom, float top, float halfWidth, ccColor4F color) {
@@ -66,13 +66,13 @@ void GuidePainter::paintBand(CCDrawNode* node, Band const& band, Viewport const&
     if (config.showBandLines && band.pressX >= view.clipX) {
         drawVerticalLine(node, band.pressX, view.bandBottom, view.bandTop,
                          std::max(config.lineWidth, 0.05f) * 0.5f,
-                         withAlpha(kAccentWhite, config.lineOpacity * config.bandOpacity));
+                         withAlpha(config.markerColor, config.lineOpacity * config.bandOpacity));
     }
 }
 
 void GuidePainter::paintMarker(CCDrawNode* node, Marker const& marker, float resolvedY, Snapshot const& config) {
     float half = std::max(config.markerSize, 1.f) * 0.5f;
-    ccColor3B base = marker.player2 ? kPlayerTwoColor : kAccentWhite;
+    ccColor3B base = marker.player2 ? config.playerTwoColor : config.markerColor;
 
     CCPoint quad[4] = {
         ccp(marker.x - half, resolvedY - half),
@@ -90,7 +90,7 @@ void GuidePainter::paintMarker(CCDrawNode* node, Marker const& marker, float res
 void GuidePainter::paintPlayerLine(CCDrawNode* node, Viewport const& view, Snapshot const& config) {
     drawVerticalLine(node, view.lineX, view.bandBottom, view.bandTop,
                      std::max(config.lineThickness, 0.1f) * 0.5f,
-                     withAlpha(kAccentWhite, config.lineOpacity * config.indicatorOpacity));
+                     withAlpha(config.markerColor, config.lineOpacity * config.indicatorOpacity));
 }
 
 void GuidePainter::paintTrajectory(CCDrawNode* node, std::vector<TrajectorySample> const& samples,

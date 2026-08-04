@@ -13,6 +13,8 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/ui/GeodeUI.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <algorithm>
+#include <cstddef>
 
 using namespace geode::prelude;
 using namespace cocos2d;
@@ -21,13 +23,34 @@ namespace cgv {
 
 namespace {
 
-constexpr float kPopupWidth = 380.f;
-constexpr float kPopupHeight = 260.f;
-constexpr float kListWidth = 320.f;
-constexpr float kListHeight = 130.f;
-constexpr float kRowHeight = 30.f;
-constexpr float kRowGap = 2.f;
-constexpr ccColor3B kLoadedColor{80, 255, 140};
+constexpr float kPopupWidth = 420.f;
+constexpr float kPopupHeight = 290.f;
+constexpr float kListWidth = 368.f;
+constexpr float kListHeight = 158.f;
+constexpr float kRowHeight = 32.f;
+constexpr float kRowGap = 3.f;
+constexpr float kTitleOffset = 22.f;
+constexpr float kTitleScale = .8f;
+constexpr float kButtonRowY = -58.f;
+constexpr float kListCentreY = -20.f;
+constexpr float kStatusY = 18.f;
+constexpr float kRowLabelInset = 12.f;
+constexpr float kRowButtonInset = 48.f;
+constexpr float kRowNameGap = 34.f;
+constexpr size_t kNameLimit = 30;
+constexpr const char* kBoldFont = "bigFont.fnt";
+constexpr float kRowNameScale = .42f;
+constexpr float kRowNameMinScale = .26f;
+constexpr float kStatusScale = .34f;
+constexpr float kStatusMinScale = .22f;
+constexpr float kEmptyScale = .45f;
+constexpr ccColor3B kLoadedColor{90, 255, 150};
+constexpr ccColor4B kListBackground{0, 0, 0, 75};
+constexpr ccColor4B kRowTint{255, 255, 255, 12};
+
+float rowNameWidth() {
+    return kListWidth - kRowButtonInset - kRowLabelInset - kRowNameGap;
+}
 
 std::string abbreviate(std::string const& text, size_t limit) {
     if (text.size() <= limit) return text;
@@ -49,7 +72,7 @@ GuidePopup* GuidePopup::create() {
 bool GuidePopup::init() {
     if (!Popup::init(kPopupWidth, kPopupHeight, "GJ_square01.png")) return false;
 
-    this->setTitle("Click Guide");
+    this->setTitle("Click Guide", "goldFont.fnt", kTitleScale, kTitleOffset);
     buildActionRow();
     buildScrollList();
     buildStatusLabel();
@@ -60,39 +83,125 @@ bool GuidePopup::init() {
 }
 
 void GuidePopup::buildActionRow() {
-    auto* importSprite = ButtonSprite::create("Import Macro", "goldFont.fnt", "GJ_button_01.png", .7f);
-    importSprite->setScale(.72f);
-    auto* importButton = CCMenuItemSpriteExtra::create(importSprite, this, menu_selector(GuidePopup::onImport));
-    m_buttonMenu->addChildAtPosition(importButton, Anchor::Top, ccp(-104, -30));
+    struct ActionButton {
+        const char* label;
+        const char* texture;
+        cocos2d::SEL_MenuHandler handler;
+        bool isUnload;
+    };
 
-    auto* folderSprite = ButtonSprite::create("Folder", "goldFont.fnt", "GJ_button_05.png", .7f);
-    folderSprite->setScale(.72f);
-    auto* folderButton = CCMenuItemSpriteExtra::create(folderSprite, this, menu_selector(GuidePopup::onFolder));
-    m_buttonMenu->addChildAtPosition(folderButton, Anchor::Top, ccp(-8, -30));
+    const ActionButton actions[] = {
+        {"Import", "GJ_button_01.png", menu_selector(GuidePopup::onImport), false},
+        {"Folder", "GJ_button_05.png", menu_selector(GuidePopup::onFolder), false},
+        {"Unload", "GJ_button_06.png", menu_selector(GuidePopup::onUnload), true},
+        {"Settings", "GJ_button_02.png", menu_selector(GuidePopup::onSettings), false},
+    };
 
-    auto* settingsSprite = ButtonSprite::create("Settings", "goldFont.fnt", "GJ_button_02.png", .7f);
-    settingsSprite->setScale(.72f);
-    auto* settingsButton = CCMenuItemSpriteExtra::create(settingsSprite, this, menu_selector(GuidePopup::onSettings));
-    m_buttonMenu->addChildAtPosition(settingsButton, Anchor::Top, ccp(92, -30));
+    constexpr size_t kActionCount = sizeof(actions) / sizeof(actions[0]);
+    constexpr float kActionSpacing = 96.f;
+    float firstX = -kActionSpacing * (kActionCount - 1) * 0.5f;
+
+    for (size_t index = 0; index < kActionCount; ++index) {
+        auto* sprite = ButtonSprite::create(actions[index].label, "goldFont.fnt",
+                                            actions[index].texture, .8f);
+        if (!sprite) continue;
+        sprite->setScale(.62f);
+
+        auto* button = CCMenuItemSpriteExtra::create(sprite, this, actions[index].handler);
+        if (!button) continue;
+
+        m_buttonMenu->addChildAtPosition(button, Anchor::Top,
+                                         ccp(firstX + kActionSpacing * index, kButtonRowY));
+
+        if (actions[index].isUnload) m_unloadButton = button;
+    }
+}
+
+void GuidePopup::refreshUnloadButton() {
+    if (!m_unloadButton) return;
+    bool loaded = MacroStore::get().hasMacro();
+    m_unloadButton->setEnabled(loaded);
+    m_unloadButton->setOpacity(loaded ? 255 : 100);
+    if (auto* sprite = m_unloadButton->getChildByType<ButtonSprite>(0)) {
+        sprite->setCascadeOpacityEnabled(true);
+        sprite->setOpacity(loaded ? 255 : 100);
+    }
 }
 
 void GuidePopup::buildScrollList() {
     m_scroll = ScrollLayer::create({kListWidth, kListHeight});
     if (!m_scroll) return;
 
-    auto* background = CCLayerColor::create({0, 0, 0, 90}, kListWidth, kListHeight);
-    background->setAnchorPoint(ccp(.5f, .5f));
-    m_mainLayer->addChildAtPosition(background, Anchor::Center, ccp(-kListWidth / 2.f, -kListHeight / 2.f + 6.f));
+    auto* background = CCScale9Sprite::create("square02_001.png");
+    if (background) {
+        background->setContentSize({kListWidth, kListHeight});
+        background->setOpacity(kListBackground.a);
+        background->setColor({kListBackground.r, kListBackground.g, kListBackground.b});
+        m_mainLayer->addChildAtPosition(background, Anchor::Center, ccp(0.f, kListCentreY));
+    }
 
+    m_scroll->ignoreAnchorPointForPosition(false);
     m_scroll->setAnchorPoint(ccp(.5f, .5f));
-    m_mainLayer->addChildAtPosition(m_scroll, Anchor::Center, ccp(-kListWidth / 2.f, -kListHeight / 2.f + 6.f));
+    m_mainLayer->addChildAtPosition(m_scroll, Anchor::Center, ccp(0.f, kListCentreY));
 }
 
 void GuidePopup::buildStatusLabel() {
-    m_status = CCLabelBMFont::create("", "chatFont.fnt");
+    m_status = CCLabelBMFont::create("", kBoldFont);
     if (!m_status) return;
-    m_status->setScale(.6f);
-    m_mainLayer->addChildAtPosition(m_status, Anchor::Bottom, ccp(0, 24));
+    m_status->setScale(kStatusScale);
+    m_status->setAnchorPoint(ccp(.5f, .5f));
+    m_mainLayer->addChildAtPosition(m_status, Anchor::Bottom, ccp(0.f, kStatusY));
+}
+
+void GuidePopup::addEmptyMessage() {
+    auto* empty = CCLabelBMFont::create("No macros yet - press Import", kBoldFont);
+    if (!empty) return;
+
+    empty->setScale(kEmptyScale);
+    empty->setOpacity(170);
+    empty->setPosition(ccp(kListWidth / 2.f, kListHeight / 2.f));
+    m_scroll->m_contentLayer->addChild(empty);
+}
+
+void GuidePopup::addRow(size_t index, float rowTop, bool isLoaded) {
+    auto const& entry = m_entries[index];
+    float centreY = rowTop - kRowHeight * 0.5f;
+
+    if (index % 2 == 1) {
+        auto* stripe = CCLayerColor::create(kRowTint, kListWidth, kRowHeight);
+        if (stripe) {
+            stripe->setPosition(ccp(0.f, rowTop - kRowHeight));
+            m_scroll->m_contentLayer->addChild(stripe);
+        }
+    }
+
+    auto* name = CCLabelBMFont::create(abbreviate(entry.name, kNameLimit).c_str(), kBoldFont);
+    if (name) {
+        name->setAnchorPoint(ccp(0.f, .5f));
+        name->limitLabelWidth(rowNameWidth(), kRowNameScale, kRowNameMinScale);
+        name->setPosition(ccp(kRowLabelInset, centreY));
+        name->setColor(isLoaded ? kLoadedColor : ccColor3B{255, 255, 255});
+        m_scroll->m_contentLayer->addChild(name);
+    }
+
+    auto* menu = CCMenu::create();
+    if (!menu) return;
+    menu->setPosition(ccp(0.f, 0.f));
+
+    auto* sprite = ButtonSprite::create(isLoaded ? "Loaded" : "Load", "goldFont.fnt",
+                                        isLoaded ? "GJ_button_02.png" : "GJ_button_01.png", .8f);
+    if (!sprite) return;
+    sprite->setScale(.5f);
+
+    auto* button = CCMenuItemSpriteExtra::create(sprite, this, menu_selector(GuidePopup::onSelectEntry));
+    if (!button) return;
+
+    button->setTag(static_cast<int>(index));
+    button->setPosition(ccp(kListWidth - kRowButtonInset, centreY));
+    button->setEnabled(!isLoaded);
+    menu->addChild(button);
+
+    m_scroll->m_contentLayer->addChild(menu);
 }
 
 void GuidePopup::rebuildList() {
@@ -101,45 +210,22 @@ void GuidePopup::rebuildList() {
     m_scroll->m_contentLayer->removeAllChildren();
     m_entries = MacroLibrary::list();
 
-    auto const& loadedPath = MacroStore::get().path();
-    float totalHeight = std::max(kListHeight, m_entries.size() * (kRowHeight + kRowGap));
+    float used = m_entries.size() * (kRowHeight + kRowGap);
+    float totalHeight = std::max(kListHeight, used);
     m_scroll->m_contentLayer->setContentSize({kListWidth, totalHeight});
 
     if (m_entries.empty()) {
-        auto* empty = CCLabelBMFont::create("No macros imported yet", "chatFont.fnt");
-        empty->setScale(.6f);
-        empty->setPosition(ccp(kListWidth / 2.f, totalHeight - kRowHeight));
-        m_scroll->m_contentLayer->addChild(empty);
+        addEmptyMessage();
         m_scroll->moveToTop();
         return;
     }
 
+    auto const& loadedPath = MacroStore::get().path();
+
     for (size_t index = 0; index < m_entries.size(); ++index) {
-        auto const& entry = m_entries[index];
-        bool isLoaded = !loadedPath.empty() && loadedPath == entry.path;
-
-        float rowY = totalHeight - (index + 0.5f) * (kRowHeight + kRowGap);
-
-        auto* name = CCLabelBMFont::create(abbreviate(entry.name, 28).c_str(), "chatFont.fnt");
-        name->setScale(.55f);
-        name->setAnchorPoint(ccp(0.f, .5f));
-        name->setPosition(ccp(10.f, rowY));
-        if (isLoaded) name->setColor(kLoadedColor);
-        m_scroll->m_contentLayer->addChild(name);
-
-        auto* menu = CCMenu::create();
-        menu->setPosition(ccp(0.f, 0.f));
-
-        auto* sprite = ButtonSprite::create(isLoaded ? "Loaded" : "Load", "goldFont.fnt",
-                                            isLoaded ? "GJ_button_02.png" : "GJ_button_01.png", .6f);
-        sprite->setScale(.6f);
-
-        auto* button = CCMenuItemSpriteExtra::create(sprite, this, menu_selector(GuidePopup::onSelectEntry));
-        button->setTag(static_cast<int>(index));
-        button->setPosition(ccp(kListWidth - 40.f, rowY));
-        menu->addChild(button);
-
-        m_scroll->m_contentLayer->addChild(menu);
+        bool isLoaded = !loadedPath.empty() && loadedPath == m_entries[index].path;
+        float rowTop = totalHeight - index * (kRowHeight + kRowGap);
+        addRow(index, rowTop, isLoaded);
     }
 
     m_scroll->moveToTop();
@@ -148,12 +234,12 @@ void GuidePopup::rebuildList() {
 std::string GuidePopup::alignmentSummary() {
     auto report = Runtime::get().alignmentReport();
     if (report.locked) {
-        return fmt::format("aligned {:+.0f}f", report.offsetFrames);
+        return fmt::format("lined up ({:+.0f}f)", report.offsetFrames);
     }
     if (report.searching) {
-        return fmt::format("aligning ({}/{})", report.presses, kMinPressesBeforeLock);
+        return fmt::format("lining up {}/{}", report.presses, kMinPressesBeforeLock);
     }
-    return "not aligned";
+    return "not lined up";
 }
 
 void GuidePopup::refreshStatus() {
@@ -161,16 +247,19 @@ void GuidePopup::refreshStatus() {
 
     auto& store = MacroStore::get();
     if (!store.hasMacro()) {
+        refreshUnloadButton();
         m_status->setString("No macro loaded");
         return;
     }
 
-    m_status->setString(fmt::format("{} - {} inputs @ {:.0f} FPS - {}",
-                                    abbreviate(store.displayName(), 20),
+    refreshUnloadButton();
+
+    m_status->setString(fmt::format("{}   {} clicks   {}",
+                                    abbreviate(store.displayName(), kNameLimit),
                                     store.inputCount(),
-                                    store.framerate(),
                                     alignmentSummary())
                             .c_str());
+    m_status->limitLabelWidth(kListWidth, kStatusScale, kStatusMinScale);
 }
 
 void GuidePopup::loadMacroAt(std::filesystem::path const& path) {
@@ -183,6 +272,19 @@ void GuidePopup::loadMacroAt(std::filesystem::path const& path) {
     rememberLoadedMacro(path);
     rebuildList();
     refreshStatus();
+}
+
+void GuidePopup::unloadMacro() {
+    MacroStore::get().clear();
+    forgetLoadedMacro();
+    Runtime::get().requestRedraw();
+    rebuildList();
+    refreshStatus();
+}
+
+void GuidePopup::onUnload(CCObject*) {
+    if (!MacroStore::get().hasMacro()) return;
+    unloadMacro();
 }
 
 void GuidePopup::onSelectEntry(CCObject* sender) {
