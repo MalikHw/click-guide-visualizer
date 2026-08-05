@@ -95,6 +95,7 @@ void GuideController::onLevelReset() {
     m_anchorLatched = false;
     m_anchorX = 0.f;
     m_alignment.reset();
+    m_startOffset.reset();
     publishAlignmentReport();
     m_predictor.clear();
     m_predictorPlayer2.clear();
@@ -244,9 +245,14 @@ double GuideController::effectiveTickRate() const {
     return tickRate * m_alignment.rateScale();
 }
 
+double GuideController::levelTimeNow() const {
+    if (!m_layer) return 0.0;
+    return m_layer->m_attemptTime + static_cast<double>(m_startOffset.seconds());
+}
+
 double GuideController::currentMacroFrame() const {
     if (!m_layer) return 0.0;
-    return m_layer->m_attemptTime * effectiveTickRate();
+    return levelTimeNow() * effectiveTickRate();
 }
 
 bool GuideController::gamemodeAllowed() const {
@@ -304,7 +310,7 @@ void GuideController::consumePresses() {
         if (!matched) continue;
 
         if (!searching) {
-            m_alignment.observeResidual(bestDelta, m_layer->m_attemptTime);
+            m_alignment.observeResidual(bestDelta, levelTimeNow());
             if (m_alignment.driftDetected()) {
                 log::info("{} Timing drift detected, remeasuring (rate scale {:.4f})", kLogTag,
                           m_alignment.rateScale());
@@ -313,7 +319,7 @@ void GuideController::consumePresses() {
             }
         }
 
-        m_rhythmLane.consumeNearestNote(m_layer->m_attemptTime, press.player2,
+        m_rhythmLane.consumeNearestNote(levelTimeNow(), press.player2,
                                         static_cast<int>(std::lround(bestDelta)));
         m_rhythmLane.registerHit();
 
@@ -496,6 +502,7 @@ void GuideController::onPostUpdate(float deltaSeconds) {
         m_geometryValid = false;
     }
 
+    m_startOffset.measure(m_layer);
     latchSpawnAnchor();
 
     if (!m_geometryValid) rebuildGeometry();
@@ -509,8 +516,8 @@ void GuideController::onPostUpdate(float deltaSeconds) {
     updateJudgements(deltaSeconds);
     redraw();
 
-    AssistState::get().setSongTime(m_layer->m_attemptTime);
-    m_rhythmLane.update(m_layer->m_attemptTime, deltaSeconds);
+    AssistState::get().setSongTime(levelTimeNow());
+    m_rhythmLane.update(levelTimeNow(), deltaSeconds);
 }
 
 } // namespace cgv

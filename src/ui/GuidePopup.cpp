@@ -5,6 +5,7 @@
 #include "runtime/Alignment.hpp"
 #include "runtime/Runtime.hpp"
 #include "store/MacroSetting.hpp"
+#include "online/HyperbolusClient.hpp"
 #include "store/MacroStore.hpp"
 #include "ui/MacroPicker.hpp"
 
@@ -12,6 +13,8 @@
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/binding/GJGameLevel.hpp>
+#include <Geode/binding/PlayLayer.hpp>
 #include <Geode/utils/cocos.hpp>
 #include <algorithm>
 #include <cstddef>
@@ -92,13 +95,14 @@ void GuidePopup::buildActionRow() {
 
     const ActionButton actions[] = {
         {"Import", "GJ_button_01.png", menu_selector(GuidePopup::onImport), false},
+        {"Online", "GJ_button_03.png", menu_selector(GuidePopup::onOnline), false},
         {"Folder", "GJ_button_05.png", menu_selector(GuidePopup::onFolder), false},
         {"Unload", "GJ_button_06.png", menu_selector(GuidePopup::onUnload), true},
         {"Settings", "GJ_button_02.png", menu_selector(GuidePopup::onSettings), false},
     };
 
     constexpr size_t kActionCount = sizeof(actions) / sizeof(actions[0]);
-    constexpr float kActionSpacing = 96.f;
+    constexpr float kActionSpacing = 78.f;
     float firstX = -kActionSpacing * (kActionCount - 1) * 0.5f;
 
     for (size_t index = 0; index < kActionCount; ++index) {
@@ -248,11 +252,17 @@ void GuidePopup::refreshStatus() {
     auto& store = MacroStore::get();
     if (!store.hasMacro()) {
         refreshUnloadButton();
-        m_status->setString("No macro loaded");
+        m_status->setString(m_onlineMessage.empty() ? "No macro loaded" : m_onlineMessage.c_str());
         return;
     }
 
     refreshUnloadButton();
+
+    if (!m_onlineMessage.empty()) {
+        m_status->setString(m_onlineMessage.c_str());
+        m_status->limitLabelWidth(kListWidth, kStatusScale, kStatusMinScale);
+        return;
+    }
 
     m_status->setString(fmt::format("{}   {} clicks   {}",
                                     abbreviate(store.displayName(), kNameLimit),
@@ -270,6 +280,7 @@ void GuidePopup::loadMacroAt(std::filesystem::path const& path) {
     }
 
     rememberLoadedMacro(path);
+    m_onlineMessage.clear();
     rebuildList();
     refreshStatus();
 }
@@ -285,6 +296,86 @@ void GuidePopup::unloadMacro() {
 void GuidePopup::onUnload(CCObject*) {
     if (!MacroStore::get().hasMacro()) return;
     unloadMacro();
+}
+
+int GuidePopup::currentLevelId() {
+    auto* play = PlayLayer::get();
+    if (!play || !play->m_level) return 0;
+    return play->m_level->m_levelID.value();
+}
+
+void GuidePopup::startOnlineSearch() {
+    if (m_onlineBusy) return;
+
+    int levelId = currentLevelId();
+    if (levelId <= 0) {
+        m_onlineMessage = "Open this from a level to search online";
+        refreshStatus();
+        return;
+    }
+
+    m_onlineBusy = true;
+    m_onlineMessage = "Asking Hyperbolus...";
+    refreshStatus();
+
+    WeakRef<GuidePopup> self = this;
+    browseMacrosForLevel(levelId, [self](BrowseResult result) mutable {
+        auto popup = self.lock();
+        if (!popup) return;
+
+        popup->m_onlineBusy = false;
+        if (!result.ok) {
+            popup->m_onlineMessage = result.error;
+            popup->refreshStatus();
+            return;
+        }
+
+        popup->m_online = std::move(result.macros);
+        if (popup->m_online.empty()) {
+            popup->m_onlineMessage = "Hyperbolus has nothing this mod can read for this level";
+        } else {
+            popup->m_onlineMessage =
+                fmt::format("{} usable of {} on Hyperbolus", popup->m_online.size(), result.total);
+        }
+        popup->showOnlineResults();
+        popup->refreshStatus();
+    });
+}
+
+void GuidePopup::showOnlineResults() {
+    if (m_online.empty()) return;
+
+    auto* alert = FLAlertLayer::create("Hyperbolus", m_onlineMessage, "OK");
+    if (alert) alert->show();
+
+    OnlineMacro best = m_online.front();
+    WeakRef<GuidePopup> self = this;
+
+    downloadMacro(best, [self](FetchResult result) mutable {
+        auto popup = self.lock();
+        if (!popup) return;
+
+        if (!result.ok) {
+            popup->m_onlineMessage = result.error;
+            popup->refreshStatus();
+            return;
+        }
+
+        popup->m_onlineMessage = "Downloaded, loading it now";
+        popup->loadMacroAt(result.path);
+    });
+}
+
+void GuidePopup::onOnline(CCObject*) {
+    if (!onlineBrowsingAllowed()) {
+        FLAlertLayer::create(
+            "Online Is Off",
+            "Turn on <cy>Find Macros Online</c> in the settings first. It contacts hyperbolus.net.",
+            "OK")
+            ->show();
+        return;
+    }
+    startOnlineSearch();
 }
 
 void GuidePopup::onSelectEntry(CCObject* sender) {

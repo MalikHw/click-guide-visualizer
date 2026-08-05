@@ -9,7 +9,7 @@ on:
 
 env:
   GEODE_VERSION: 5.8.2
-  MOD_ID: you.click-guide-visualizer
+  MOD_ID: geekedgdplayer.click-guide-visualizer
 
 jobs:
   build:

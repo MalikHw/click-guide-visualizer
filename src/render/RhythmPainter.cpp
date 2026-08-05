@@ -21,7 +21,8 @@ constexpr float kHoldBodyInsetScale = 0.28f;
 constexpr float kNoteEdgeInset = 3.f;
 constexpr float kPlayerTwoInsetScale = 0.22f;
 constexpr float kSpacingUsageFraction = 0.62f;
-constexpr float kMinimumNoteHalfThickness = 1.5f;
+constexpr float kMinimumNoteHalfThickness = 0.5f;
+constexpr float kMaxBorderShareOfNote = 0.34f;
 constexpr float kNoteHeadBrighten = 0.25f;
 constexpr float kWindowFillAlpha = 0.18f;
 constexpr ccColor3B kLaneBackdrop{10, 12, 18};
@@ -65,9 +66,14 @@ LaneLayout computeLaneLayout(CCSize const& windowSize, Snapshot const& config) {
     layout.playerTwoInset = layout.halfWidth * kPlayerTwoInsetScale;
 
     layout.noteHalfWidth = std::max(layout.halfWidth - kNoteEdgeInset, 1.f);
-    layout.noteHalfHeight = std::max(config.rhythmNoteThickness, 2.f) * 0.5f;
+    layout.noteHalfHeight = std::max(config.rhythmNoteThickness, 1.f) * 0.5f;
 
     return layout;
+}
+
+float borderWidthForNote(Snapshot const& config, float halfThickness) {
+    float cap = halfThickness * 2.f * kMaxBorderShareOfNote;
+    return std::min(config.borderWidth, cap);
 }
 
 float noteHalfThicknessFor(LaneLayout const& layout, double gapSeconds, float pixelsPerSecond) {
@@ -137,7 +143,7 @@ void RhythmPainter::paintNoteHead(CCDrawNode* node, LaneLayout const& layout, Sn
 
     fillRect(node, left, hitLineY - halfThickness, right, hitLineY + halfThickness,
              withAlpha(base, fill + config.fillOpacity * alphaScale * kNoteHeadBrighten),
-             config.borderWidth,
+             borderWidthForNote(config, halfThickness),
              withAlpha(config.markerColor, border));
 }
 

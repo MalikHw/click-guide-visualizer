@@ -49,7 +49,7 @@ struct Snapshot {
     float rhythmLaneWidth = 220.f;
     float rhythmHitY = 0.5f;
     float rhythmLeadTime = 2.0f;
-    float rhythmNoteThickness = 22.f;
+    float rhythmNoteThickness = 5.f;
     float rhythmLaneOpacity = 0.5f;
     bool rhythmHideWorldGuide = true;
     bool rhythmHitEffects = true;
@@ -65,6 +65,8 @@ struct Snapshot {
 
     bool autoAlign = true;
     bool autoLoadMacro = true;
+    bool onlineBrowsing = false;
+    bool onlineAutoOpen = false;
     bool debugLog = false;
 
     bool enabledFor(Gamemode mode) const {

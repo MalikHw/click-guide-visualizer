@@ -10,6 +10,7 @@
 #include "render/RhythmModel.hpp"
 #include "level/LevelScan.hpp"
 #include "runtime/Alignment.hpp"
+#include "runtime/StartOffset.hpp"
 
 #include <cocos2d.h>
 #include <cstdint>
@@ -58,6 +59,7 @@ private:
     Viewport computeViewport() const;
     float resolveMarkerY(Marker const& marker, Viewport const& view);
     double currentMacroFrame() const;
+    double levelTimeNow() const;
     double effectiveTickRate() const;
     void publishAlignmentReport() const;
     bool gamemodeAllowed() const;
@@ -69,6 +71,7 @@ private:
 
     Geometry m_geometry;
     Alignment m_alignment;
+    StartOffset m_startOffset;
     HeightModel m_heights;
     PhysicsPredictor m_predictor;
     PhysicsPredictor m_predictorPlayer2;

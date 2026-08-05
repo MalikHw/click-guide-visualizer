@@ -3,6 +3,7 @@
 #include "parse/Gdr2Parser.hpp"
 #include "parse/JsonMacroParser.hpp"
 #include "parse/MsgpackDecoder.hpp"
+#include "parse/NestingGuard.hpp"
 
 #include <cctype>
 #include <cstdint>
@@ -83,6 +84,10 @@ MacroLoadResult parseLegacyMsgpack(std::vector<uint8_t> const& bytes) {
 }
 
 MacroLoadResult parseJsonBytes(std::vector<uint8_t> const& bytes) {
+    if (!jsonNestingWithinLimit(bytes)) {
+        return std::string("Macro is nested too deeply to be read safely");
+    }
+
     std::string text(reinterpret_cast<const char*>(bytes.data()), bytes.size());
     return std::visit([](auto&& value) -> MacroLoadResult { return std::move(value); },
                       parseJsonMacroText(text));

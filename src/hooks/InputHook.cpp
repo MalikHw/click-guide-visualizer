@@ -18,7 +18,7 @@ bool shouldHoldForLater(PlayLayer* playLayer, bool isPlayer1) {
     if (!state.active() || state.releasing()) return false;
     if (!state.buffer().hasTargets()) return false;
 
-    bool held = state.buffer().tryBuffer(playLayer->m_attemptTime,
+    bool held = state.buffer().tryBuffer(state.songTime(),
                                          cgv::settings().assistBufferSeconds,
                                          !isPlayer1);
     if (held) state.noteBuffered();

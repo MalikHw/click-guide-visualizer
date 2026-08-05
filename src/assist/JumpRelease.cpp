@@ -19,7 +19,7 @@ void releaseDueJumps(PlayLayer* layer) {
     if (!state.active()) return;
 
     bool player2 = false;
-    while (state.buffer().takeDueJump(layer->m_attemptTime, player2)) {
+    while (state.buffer().takeDueJump(state.songTime(), player2)) {
         state.setReleasing(true);
         layer->handleButton(true, kJumpButton, !player2);
         layer->handleButton(false, kJumpButton, !player2);

@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "online/HyperbolusModel.hpp"
 #include "ui/MacroLibrary.hpp"
 
 #include <Geode/Geode.hpp>
@@ -35,11 +36,19 @@ private:
     void onSettings(cocos2d::CCObject* sender);
     void onSelectEntry(cocos2d::CCObject* sender);
     void onUnload(cocos2d::CCObject* sender);
+    void onOnline(cocos2d::CCObject* sender);
 
     void loadMacroAt(std::filesystem::path const& path);
     void unloadMacro();
+    void startOnlineSearch();
+    void showOnlineResults();
+    static int currentLevelId();
 
     CCMenuItemSpriteExtra* m_unloadButton = nullptr;
+    CCMenuItemSpriteExtra* m_onlineButton = nullptr;
+    std::vector<OnlineMacro> m_online;
+    bool m_onlineBusy = false;
+    std::string m_onlineMessage;
     cocos2d::CCLabelBMFont* m_status = nullptr;
     geode::ScrollLayer* m_scroll = nullptr;
     std::vector<LibraryEntry> m_entries;

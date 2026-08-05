@@ -89,7 +89,7 @@ void SettingsCache::refresh() {
     next.rhythmLaneWidth = clampRange(floatSetting("rhythm-lane-width", 220.0), 60.0, 700.0, 220.0);
     next.rhythmHitY = clampRange(floatSetting("rhythm-hit-y", 0.5), 0.05, 0.95, 0.5);
     next.rhythmLeadTime = clampRange(floatSetting("rhythm-lead-time", 2.0), 0.25, 8.0, 2.0);
-    next.rhythmNoteThickness = clampRange(floatSetting("rhythm-note-thickness", 22.0), 4.0, 90.0, 22.0);
+    next.rhythmNoteThickness = clampRange(floatSetting("rhythm-note-thickness", 5.0), 1.0, 40.0, 5.0);
     next.rhythmLaneOpacity = clampUnit(floatSetting("rhythm-lane-opacity", 0.5));
     next.rhythmHideWorldGuide = boolSetting("rhythm-hide-world-guide", true);
     next.rhythmHitEffects = boolSetting("rhythm-hit-effects", true);
@@ -105,6 +105,8 @@ void SettingsCache::refresh() {
 
     next.autoAlign = boolSetting("auto-align", true);
     next.autoLoadMacro = boolSetting("auto-load-macro", true);
+    next.onlineBrowsing = boolSetting("online-browsing", false);
+    next.onlineAutoOpen = boolSetting("online-auto-open", false);
     next.debugLog = boolSetting("debug-log", false);
 
     m_snapshot = next;

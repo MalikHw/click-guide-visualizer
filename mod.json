@@ -6,11 +6,11 @@
         "mac": "2.2081",
         "ios": "2.2081"
     },
-    "id": "you.click-guide-visualizer",
+    "id": "geekedgdplayer.click-guide-visualizer",
     "name": "Click Guide Visualizer",
-    "version": "v0.4.3",
+    "version": "v0.6.0",
     "developer": "GeekedGDPlayer",
-    "description": "Draws a macro's upcoming inputs onto the level ahead of the player.",
+    "description": "Shows you where the clicks are before you get to them.",
     "links": {
         "source": "https://github.com/ohiorizzgod67mango-a11y/click-guide-visualizer"
     },
@@ -318,13 +318,13 @@
         },
         "rhythm-note-thickness": {
             "type": "float",
-            "default": 22.0,
-            "min": 4.0,
-            "max": 90.0,
-            "name": "Note Height",
-            "description": "How tall each note is. Notes get thinner on their own when clicks are close together.",
+            "default": 5.0,
+            "min": 1.0,
+            "max": 40.0,
+            "name": "Note Thickness",
+            "description": "How thick each note line is. Thin shows the exact click frame. Notes thin out on their own when clicks are close together.",
             "control": {
-                "slider-step": 2.0
+                "slider-step": 1.0
             }
         },
         "rhythm-lane-opacity": {
@@ -477,6 +477,19 @@
         "macro-title": {
             "type": "title",
             "name": "Macro File"
+        },
+        "online-browsing": {
+            "type": "bool",
+            "default": false,
+            "name": "Find Macros Online",
+            "description": "Look up macros for the level you are playing from hyperbolus.net. Off by default. Turning this on contacts their server."
+        },
+        "online-auto-open": {
+            "type": "bool",
+            "default": false,
+            "name": "Search When Menu Opens",
+            "description": "Automatically look for macros when you open the Click Guide menu, instead of pressing Online.",
+            "enable-if": "online-browsing"
         },
         "macro-file": {
             "type": "file",
