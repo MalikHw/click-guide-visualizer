@@ -107,6 +107,7 @@ void SettingsCache::refresh() {
     next.autoLoadMacro = boolSetting("auto-load-macro", true);
     next.onlineBrowsing = boolSetting("online-browsing", false);
     next.onlineAutoOpen = boolSetting("online-auto-open", false);
+    next.hotkeyPopupSeconds = clampRange(floatSetting("hotkey-popup-seconds", 1.6), 0.4, 5.0, 1.6);
     next.debugLog = boolSetting("debug-log", false);
 
     m_snapshot = next;

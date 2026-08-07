@@ -25,6 +25,7 @@ namespace {
 
 constexpr float kBandVerticalMargin = 4000.f;
 constexpr float kViewportSlack = 240.f;
+constexpr double kFarMissFrames = 300.0;
 constexpr float kMarkerRowSpan = 120.f;
 constexpr float kPlayerTwoMarkerOffset = 34.f;
 constexpr float kDefaultSpeedX = 311.58f;
@@ -260,12 +261,59 @@ bool GuideController::gamemodeAllowed() const {
     return settings().enabledFor(gamemodeOf(m_layer->m_player1));
 }
 
+void GuideController::placeJudgement(PressEvent const& press, double deltaFrames, bool provisional) {
+    if (!settings().showAccuracy) return;
+    if (!m_layer) return;
+
+    PlayerObject* player = press.player2 ? m_layer->m_player2 : m_layer->m_player1;
+    if (!player) return;
+
+    Judgement judgement;
+    judgement.levelX = player->getPositionX();
+    judgement.levelY = player->getPositionY();
+    judgement.deltaFrames = static_cast<int>(std::lround(deltaFrames));
+    judgement.provisional = provisional;
+    Runtime::get().addJudgement(judgement);
+}
+
+void GuideController::reportMiss(PressEvent const& press) {
+    double noteTime = 0.0;
+    if (!m_rhythmLane.nearestNoteTime(levelTimeNow(), press.player2, noteTime)) return;
+
+    double delta = (levelTimeNow() - noteTime) * effectiveTickRate();
+    if (!std::isfinite(delta)) return;
+    if (std::fabs(delta) > kFarMissFrames) return;
+
+    placeJudgement(press, delta, false);
+}
+
+void GuideController::judgeAgainstTimeline(std::vector<PressEvent> const& presses) {
+    if (!m_rhythmLane.hasTimeline()) return;
+
+    for (auto const& press : presses) {
+        double noteTime = 0.0;
+        if (!m_rhythmLane.nearestNoteTime(levelTimeNow(), press.player2, noteTime)) continue;
+
+        double delta = (levelTimeNow() - noteTime) * effectiveTickRate();
+        if (!std::isfinite(delta)) continue;
+        if (std::fabs(delta) > kFarMissFrames) continue;
+
+        m_rhythmLane.consumeNearestNote(levelTimeNow(), press.player2,
+                                        static_cast<int>(std::lround(delta)));
+        m_rhythmLane.registerHit();
+        placeJudgement(press, delta, false);
+    }
+}
+
 void GuideController::consumePresses() {
     auto presses = Runtime::get().drainPresses();
-    if (presses.empty() || m_geometry.markers.empty()) return;
+    if (presses.empty()) return;
 
     auto data = MacroStore::get().data();
-    if (!data) return;
+    if (!data) {
+        judgeAgainstTimeline(presses);
+        return;
+    }
 
     auto const& config = settings();
     double tickRate = effectiveTickRate();
@@ -307,7 +355,10 @@ void GuideController::consumePresses() {
             }
         }
 
-        if (!matched) continue;
+        if (!matched) {
+            reportMiss(press);
+            continue;
+        }
 
         if (!searching) {
             m_alignment.observeResidual(bestDelta, levelTimeNow());
@@ -323,18 +374,9 @@ void GuideController::consumePresses() {
                                         static_cast<int>(std::lround(bestDelta)));
         m_rhythmLane.registerHit();
 
-        if (!config.showAccuracy) continue;
         if (searching && !m_alignment.provisionalTrustworthy()) continue;
 
-        PlayerObject* player = press.player2 ? m_layer->m_player2 : m_layer->m_player1;
-        if (!player) continue;
-
-        Judgement judgement;
-        judgement.levelX = player->getPositionX();
-        judgement.levelY = player->getPositionY();
-        judgement.deltaFrames = static_cast<int>(std::lround(bestDelta));
-        judgement.provisional = searching;
-        Runtime::get().addJudgement(judgement);
+        placeJudgement(press, bestDelta, searching);
     }
 }
 
@@ -406,7 +448,7 @@ Viewport GuideController::computeViewport() const {
     return view;
 }
 
-float GuideController::resolveMarkerY(Marker const& marker, Viewport const& view) {
+float GuideController::resolveMarkerY(Marker const& marker, Viewport const& view, float deltaSeconds) {
     float target = marker.player2 ? view.markerYPlayer2 : view.markerY;
 
     if (marker.hasRecordedY) {
@@ -422,7 +464,7 @@ float GuideController::resolveMarkerY(Marker const& marker, Viewport const& view
         }
     }
 
-    return m_heights.smooth(marker.inputIndex, target);
+    return m_heights.smooth(marker.inputIndex, target, deltaSeconds);
 }
 
 void GuideController::drawBands(Viewport const& view) {
@@ -438,7 +480,7 @@ void GuideController::drawBands(Viewport const& view) {
     }
 }
 
-void GuideController::drawMarkers(Viewport const& view) {
+void GuideController::drawMarkers(Viewport const& view, float deltaSeconds) {
     if (!m_bandNode || !settings().showClicks) return;
 
     auto const& config = settings();
@@ -447,7 +489,7 @@ void GuideController::drawMarkers(Viewport const& view) {
 
     for (auto it = lower; it != m_geometry.markers.end(); ++it) {
         if (it->x > view.maxX) break;
-        GuidePainter::paintMarker(m_bandNode, *it, resolveMarkerY(*it, view), config);
+        GuidePainter::paintMarker(m_bandNode, *it, resolveMarkerY(*it, view, deltaSeconds), config);
     }
 }
 
@@ -462,7 +504,7 @@ void GuideController::drawLabels() {
     m_labels.endFrame();
 }
 
-void GuideController::redraw() {
+void GuideController::redraw(float deltaSeconds) {
     if (!m_bandNode || !m_cursorNode) return;
 
     m_bandNode->clear();
@@ -478,7 +520,7 @@ void GuideController::redraw() {
     Viewport view = computeViewport();
 
     drawBands(view);
-    drawMarkers(view);
+    drawMarkers(view, deltaSeconds);
 
     if (config.showPath) {
         GuidePainter::paintTrajectory(m_cursorNode, m_predictor.samples(), config, false);
@@ -514,7 +556,7 @@ void GuideController::onPostUpdate(float deltaSeconds) {
 
     updatePredictions();
     updateJudgements(deltaSeconds);
-    redraw();
+    redraw(deltaSeconds);
 
     AssistState::get().setSongTime(levelTimeNow());
     m_rhythmLane.update(levelTimeNow(), deltaSeconds);

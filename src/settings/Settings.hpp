@@ -67,6 +67,7 @@ struct Snapshot {
     bool autoLoadMacro = true;
     bool onlineBrowsing = false;
     bool onlineAutoOpen = false;
+    float hotkeyPopupSeconds = 1.6f;
     bool debugLog = false;
 
     bool enabledFor(Gamemode mode) const {

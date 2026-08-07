@@ -10,10 +10,12 @@
 #include "render/RhythmModel.hpp"
 #include "level/LevelScan.hpp"
 #include "runtime/Alignment.hpp"
+#include "runtime/Runtime.hpp"
 #include "runtime/StartOffset.hpp"
 
 #include <cocos2d.h>
 #include <cstdint>
+#include <vector>
 
 class PlayLayer;
 class PlayerObject;
@@ -43,21 +45,24 @@ private:
 
     void latchSpawnAnchor();
     void consumePresses();
+    void judgeAgainstTimeline(std::vector<PressEvent> const& presses);
+    void reportMiss(PressEvent const& press);
+    void placeJudgement(PressEvent const& press, double deltaFrames, bool provisional);
     void updateJudgements(float deltaSeconds);
     void updatePredictions();
     void observeHeights();
 
-    void redraw();
+    void redraw(float deltaSeconds);
     void rebuildRhythmTimeline();
     void rebuildFromLevelScan();
     void publishAssistTargets();
     bool worldGuideVisible() const;
     void drawBands(Viewport const& view);
-    void drawMarkers(Viewport const& view);
+    void drawMarkers(Viewport const& view, float deltaSeconds);
     void drawLabels();
 
     Viewport computeViewport() const;
-    float resolveMarkerY(Marker const& marker, Viewport const& view);
+    float resolveMarkerY(Marker const& marker, Viewport const& view, float deltaSeconds);
     double currentMacroFrame() const;
     double levelTimeNow() const;
     double effectiveTickRate() const;

@@ -8,7 +8,7 @@ namespace cgv {
 
 constexpr float kHeightBucketSize = 10.f;
 constexpr int kHeightBucketProbeRadius = 2;
-constexpr float kHeightEaseFactor = 0.35f;
+constexpr float kHeightHalfLife = 0.06f;
 constexpr float kHeightSnapThreshold = 120.f;
 
 class HeightModel {
@@ -16,7 +16,7 @@ public:
     void observe(float levelX, float levelY);
     std::optional<float> lookup(float levelX) const;
 
-    float smooth(size_t inputIndex, float target);
+    float smooth(size_t inputIndex, float target, float deltaSeconds);
     void clearSmoothing();
     void clearObservations();
     void clearAll();

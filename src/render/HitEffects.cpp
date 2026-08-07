@@ -1,5 +1,6 @@
 #include "HitEffects.hpp"
 
+#include "render/Easing.hpp"
 #include "render/GuidePainter.hpp"
 
 #include <algorithm>
@@ -15,11 +16,6 @@ constexpr float kTwoPi = 6.28318531f;
 constexpr float kRingThickness = 2.2f;
 constexpr float kSpokeThickness = 1.8f;
 constexpr float kFlashAlpha = 0.55f;
-
-float easeOutCubic(float progress) {
-    float inverted = 1.f - std::clamp(progress, 0.f, 1.f);
-    return 1.f - inverted * inverted * inverted;
-}
 
 ccColor3B effectColor(HitEffect const& effect, Snapshot const& config) {
     if (effect.player2) return config.playerTwoColor;
@@ -100,9 +96,12 @@ void HitEffects::spawn(float screenY, bool player2, int deltaFrames, float lifet
 }
 
 void HitEffects::advance(float deltaSeconds) {
+    float step = clampDelta(deltaSeconds);
+    if (step <= 0.f) return;
+
     for (auto& effect : m_effects) {
         if (!effect.active) continue;
-        effect.age += deltaSeconds;
+        effect.age += step;
         if (effect.age >= effect.lifetime) effect.active = false;
     }
 }

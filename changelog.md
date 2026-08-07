@@ -1,5 +1,25 @@
 # changelog
 
+## v0.7.2
+
+- **fixed the early late number not always showing**, two separate reasons
+- if you were using generated notes with no macro file loaded, it never showed at all, the number was tied to macro markers that generated notes do not create
+- once the mod had lined itself up it stopped labelling any click more than half a second off, which is exactly when you most want to know, it now labels anything up to about a second and a quarter
+
+## v0.7.1
+
+- **everything moves the same on every monitor now**, the guide was smoothing per frame instead of per second, so markers snapped almost instantly on a 360hz screen and dragged for a third of a second on 30hz, same code, completely different feel
+- markers now settle in the same time no matter your framerate
+- a lag spike cannot make the guide or the hit animations jump anymore
+- the macro name popup fades and drifts instead of blinking in
+- softened the menu shading
+
+## v0.7.0
+
+- **hotkeys**, one key turns the guide on and off, and Q and E switch between the macros in your library without opening the menu
+- the macro name fades in at the top right when you switch so you know what you swapped to
+- all three keys can be changed in the settings, G, Q and E are just the defaults
+
 ## v0.6.0
 
 - **the guide and rhythm mode work from a start pos now**, before, starting partway through a level shifted the whole guide because the mod thought you were at the beginning

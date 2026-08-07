@@ -1,5 +1,7 @@
 #include "HeightModel.hpp"
 
+#include "render/Easing.hpp"
+
 #include <cmath>
 
 namespace cgv {
@@ -29,7 +31,7 @@ std::optional<float> HeightModel::lookup(float levelX) const {
     return std::nullopt;
 }
 
-float HeightModel::smooth(size_t inputIndex, float target) {
+float HeightModel::smooth(size_t inputIndex, float target, float deltaSeconds) {
     if (!std::isfinite(target)) return target;
 
     auto existing = m_smoothed.find(inputIndex);
@@ -41,7 +43,7 @@ float HeightModel::smooth(size_t inputIndex, float target) {
     float previous = existing->second;
     float next = std::fabs(target - previous) > kHeightSnapThreshold
         ? target
-        : previous + (target - previous) * kHeightEaseFactor;
+        : smoothTowards(previous, target, kHeightHalfLife, deltaSeconds);
 
     existing->second = next;
     return next;

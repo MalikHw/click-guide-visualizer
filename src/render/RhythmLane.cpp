@@ -1,6 +1,7 @@
 #include "RhythmLane.hpp"
 
 #include "assist/AssistState.hpp"
+#include "render/Easing.hpp"
 #include "render/GuideNode.hpp"
 #include "render/GuidePainter.hpp"
 #include "runtime/Runtime.hpp"
@@ -77,6 +78,23 @@ std::vector<double> RhythmLane::hitTimesForPlayerOne() const {
         times.push_back(note.hitTime);
     }
     return times;
+}
+
+bool RhythmLane::nearestNoteTime(double songTime, bool player2, double& timeOut) const {
+    double bestDistance = std::numeric_limits<double>::max();
+    bool found = false;
+
+    for (auto const& note : m_timeline) {
+        if (note.player2 != player2) continue;
+        double distance = std::fabs(note.hitTime - songTime);
+        if (distance < bestDistance) {
+            bestDistance = distance;
+            timeOut = note.hitTime;
+            found = true;
+        }
+    }
+
+    return found;
 }
 
 LaneLayout RhythmLane::currentLayout() const {
@@ -172,11 +190,13 @@ void RhythmLane::update(double songTime, float deltaSeconds) {
 
     m_node->setVisible(true);
 
+    float step = clampDelta(deltaSeconds);
+
     if (m_hitFlash > 0.f) {
-        m_hitFlash = std::max(0.f, m_hitFlash - deltaSeconds * kHitFlashDecayPerSecond);
+        m_hitFlash = std::max(0.f, m_hitFlash - step * kHitFlashDecayPerSecond);
     }
 
-    m_effects.advance(deltaSeconds);
+    m_effects.advance(step);
 
     LaneLayout layout = currentLayout();
 

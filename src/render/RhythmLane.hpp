@@ -35,6 +35,7 @@ public:
     void registerHit();
 
     std::vector<double> hitTimesForPlayerOne() const;
+    bool nearestNoteTime(double songTime, bool player2, double& timeOut) const;
     bool hasTimeline() const { return !m_timeline.empty(); }
 
 private:

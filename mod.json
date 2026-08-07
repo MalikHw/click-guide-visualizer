@@ -8,7 +8,7 @@
     },
     "id": "geekedgdplayer.click-guide-visualizer",
     "name": "Click Guide Visualizer",
-    "version": "v0.6.0",
+    "version": "v0.7.2",
     "developer": "GeekedGDPlayer",
     "description": "Shows you where the clicks are before you get to them.",
     "links": {
@@ -477,6 +477,48 @@
         "macro-title": {
             "type": "title",
             "name": "Macro File"
+        },
+        "hotkeys-title": {
+            "type": "title",
+            "name": "Hotkeys"
+        },
+        "key-toggle": {
+            "type": "keybind",
+            "default": [
+                "G"
+            ],
+            "name": "Turn The Guide On And Off",
+            "description": "Flip the guide on or off without opening the menu.",
+            "category": "gameplay"
+        },
+        "key-prev-macro": {
+            "type": "keybind",
+            "default": [
+                "Q"
+            ],
+            "name": "Previous Macro",
+            "description": "Switch to the macro before this one in your library.",
+            "category": "gameplay"
+        },
+        "key-next-macro": {
+            "type": "keybind",
+            "default": [
+                "E"
+            ],
+            "name": "Next Macro",
+            "description": "Switch to the macro after this one in your library.",
+            "category": "gameplay"
+        },
+        "hotkey-popup-seconds": {
+            "type": "float",
+            "default": 1.6,
+            "min": 0.4,
+            "max": 5.0,
+            "name": "Popup Time",
+            "description": "How long the macro name stays on screen after you switch.",
+            "control": {
+                "slider-step": 0.2
+            }
         },
         "online-browsing": {
             "type": "bool",

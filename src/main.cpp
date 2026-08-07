@@ -1,4 +1,5 @@
 #include "core/Compat.hpp"
+#include "runtime/Hotkeys.hpp"
 #include "runtime/Runtime.hpp"
 #include "settings/Settings.hpp"
 #include "store/MacroSetting.hpp"
@@ -60,6 +61,7 @@ $on_mod(Loaded) {
     cgv::SettingsCache::get().refresh();
     cgv::MacroLibrary::ensureDirectory();
     listenForSettingChanges();
+    cgv::installHotkeys();
     autoLoadLastMacro();
     loadMacroChosenInSettings();
 }

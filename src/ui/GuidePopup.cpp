@@ -47,9 +47,9 @@ constexpr float kRowNameMinScale = .26f;
 constexpr float kStatusScale = .34f;
 constexpr float kStatusMinScale = .22f;
 constexpr float kEmptyScale = .45f;
-constexpr ccColor3B kLoadedColor{90, 255, 150};
-constexpr ccColor4B kListBackground{0, 0, 0, 75};
-constexpr ccColor4B kRowTint{255, 255, 255, 12};
+constexpr ccColor3B kLoadedColor{110, 245, 165};
+constexpr ccColor4B kListBackground{0, 0, 0, 88};
+constexpr ccColor4B kRowTint{255, 255, 255, 9};
 
 float rowNameWidth() {
     return kListWidth - kRowButtonInset - kRowLabelInset - kRowNameGap;
