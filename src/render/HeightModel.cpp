@@ -36,6 +36,7 @@ float HeightModel::smooth(size_t inputIndex, float target, float deltaSeconds) {
 
     auto existing = m_smoothed.find(inputIndex);
     if (existing == m_smoothed.end()) {
+        if (m_smoothed.size() >= kMaxSmoothedEntries) m_smoothed.clear();
         m_smoothed[inputIndex] = target;
         return target;
     }

@@ -1,6 +1,7 @@
 #include "core/Compat.hpp"
 #include "runtime/Hotkeys.hpp"
 #include "runtime/Runtime.hpp"
+#include "settings/GeometryKeys.hpp"
 #include "settings/Settings.hpp"
 #include "store/MacroSetting.hpp"
 #include "store/MacroStore.hpp"
@@ -30,10 +31,13 @@ void loadMacroChosenInSettings() {
     }
 }
 
-void applySettingsChange() {
+void applySettingsChange(std::string_view key) {
     cgv::SettingsCache::get().refresh();
     loadMacroChosenInSettings();
-    cgv::Runtime::get().requestRedraw();
+
+    if (cgv::settingChangesGeometry(key)) {
+        cgv::Runtime::get().requestRedraw();
+    }
 }
 
 void autoLoadLastMacro() {
@@ -50,8 +54,8 @@ void autoLoadLastMacro() {
 }
 
 void listenForSettingChanges() {
-    listenForAllSettingChanges([](std::string_view, std::shared_ptr<SettingV3>) {
-        applySettingsChange();
+    listenForAllSettingChanges([](std::string_view key, std::shared_ptr<SettingV3>) {
+        applySettingsChange(key);
     });
 }
 

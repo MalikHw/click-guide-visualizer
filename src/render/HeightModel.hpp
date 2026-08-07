@@ -26,6 +26,7 @@ private:
 
     std::unordered_map<int, float> m_observed;
     std::unordered_map<size_t, float> m_smoothed;
+    static constexpr size_t kMaxSmoothedEntries = 512;
 };
 
 } // namespace cgv

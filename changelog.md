@@ -1,5 +1,11 @@
 # changelog
 
+## v0.7.3
+
+- **changing a colour or opacity no longer rebuilds the whole guide**, before, every single setting rebuilt every band and marker in the macro, even ones that only change how things look, dragging an opacity slider did that once per step
+- the marker smoothing no longer keeps growing a list of every marker you have scrolled past
+- release announcements now post to discord automatically
+
 ## v0.7.2
 
 - **fixed the early late number not always showing**, two separate reasons
