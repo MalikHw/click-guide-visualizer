@@ -223,14 +223,21 @@ jobs:
           required = [
               'rhythm-mode',
               'assist-buffer-input',
-              'generate-from-level',
               'enable-cheats',
               'line-lead-units',
               'macro-file',
               'auto-align',
+              'key-toggle',
+              'key-prev-macro',
+              'key-next-macro',
           ]
 
-          deprecated = ['macro-path']
+          deprecated = [
+              'macro-path',
+              'generate-title',
+              'generate-from-level',
+              'generate-speed',
+          ]
           present = [key for key in deprecated if key in settings]
           if present:
               raise SystemExit(f'::error::deprecated settings still present: {present}')
