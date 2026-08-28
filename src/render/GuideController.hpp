@@ -8,7 +8,6 @@
 #include "render/PhysicsPredictor.hpp"
 #include "render/RhythmLane.hpp"
 #include "render/RhythmModel.hpp"
-#include "level/LevelScan.hpp"
 #include "runtime/Alignment.hpp"
 #include "runtime/Runtime.hpp"
 #include "runtime/StartOffset.hpp"
@@ -54,7 +53,6 @@ private:
 
     void redraw(float deltaSeconds);
     void rebuildRhythmTimeline();
-    void rebuildFromLevelScan();
     void publishAssistTargets();
     bool worldGuideVisible() const;
     void drawBands(Viewport const& view);
@@ -81,8 +79,6 @@ private:
     PhysicsPredictor m_predictor;
     PhysicsPredictor m_predictorPlayer2;
     RhythmLane m_rhythmLane;
-    ScannedLevel m_scannedLevel;
-    bool m_levelScanned = false;
 
     uint64_t m_seenRevision = 0;
     float m_anchorX = 0.f;

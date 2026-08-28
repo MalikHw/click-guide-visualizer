@@ -16,6 +16,8 @@ constexpr ccColor3B kGoodColor{255, 220, 70};
 constexpr ccColor3B kLateColor{255, 90, 90};
 constexpr float kTrajectoryAlphaScale = 0.7f;
 constexpr size_t kTrajectoryStride = 4;
+constexpr float kMarkerSpacingShare = 0.7f;
+constexpr float kMinimumMarkerHalf = 0.6f;
 
 ccColor3B colorForOwner(bool player2, Snapshot const& config) {
     return player2 ? config.playerTwoColor : config.lineColor;
@@ -72,6 +74,10 @@ void GuidePainter::paintBand(CCDrawNode* node, Band const& band, Viewport const&
 
 void GuidePainter::paintMarker(CCDrawNode* node, Marker const& marker, float resolvedY, Snapshot const& config) {
     float half = std::max(config.markerSize, 1.f) * 0.5f;
+    if (marker.gapToNeighbour < kUnlimitedMarkerGap) {
+        float allowed = marker.gapToNeighbour * kMarkerSpacingShare * 0.5f;
+        half = std::max(kMinimumMarkerHalf, std::min(half, allowed));
+    }
     ccColor3B base = marker.player2 ? config.playerTwoColor : config.markerColor;
 
     CCPoint quad[4] = {

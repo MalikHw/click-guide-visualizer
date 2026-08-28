@@ -48,6 +48,8 @@ void showToast(std::string const& text) {
 }
 
 void showToast(std::string const& text, ccColor3B colour) {
+    if (text.empty()) return;
+
     auto* host = toastHost();
     if (!host) return;
 

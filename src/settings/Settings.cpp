@@ -95,8 +95,6 @@ void SettingsCache::refresh() {
     next.rhythmHitEffects = boolSetting("rhythm-hit-effects", true);
     next.rhythmHitEffectTime = clampRange(floatSetting("rhythm-hit-effect-time", 0.25), 0.05, 1.0, 0.25);
 
-    next.generateFromLevel = boolSetting("generate-from-level", false);
-    next.generateSpeed = clampRange(floatSetting("generate-speed", 311.58), 50.0, 1200.0, 311.58);
 
     next.enableCheats = boolSetting("enable-cheats", false);
     next.assistBufferInput = boolSetting("assist-buffer-input", false);

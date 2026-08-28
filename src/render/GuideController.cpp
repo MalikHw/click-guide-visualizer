@@ -8,8 +8,6 @@
 #include "settings/Settings.hpp"
 #include "store/MacroStore.hpp"
 #include "assist/AssistState.hpp"
-#include "level/NoteGenerator.hpp"
-#include "level/ModeProfile.hpp"
 
 #include <Geode/Geode.hpp>
 #include <algorithm>
@@ -57,8 +55,6 @@ void GuideController::attach(PlayLayer* layer) {
 
     ensureNodes();
     m_rhythmLane.attach(layer);
-    m_scannedLevel.clear();
-    m_levelScanned = false;
     AssistState::get().setActive(true);
     AssistState::get().resetCounters();
 }
@@ -157,56 +153,7 @@ void GuideController::rebuildGeometry() {
     invalidateDerivedState();
 }
 
-void GuideController::rebuildFromLevelScan() {
-    if (!m_layer) return;
-
-    if (!m_levelScanned) {
-        m_scannedLevel = scanLevelObstacles(m_layer);
-        m_levelScanned = true;
-        log::info("{} Scan: {} obstacles, {} portals, {} speed changes", kLogTag,
-                  m_scannedLevel.obstacles.size(), m_scannedLevel.modeChanges.size(),
-                  m_scannedLevel.speedChanges.size());
-    }
-
-    if (!m_scannedLevel.valid || m_scannedLevel.obstacles.empty()) {
-        m_rhythmLane.rebuild({});
-        return;
-    }
-
-    auto const& config = settings();
-
-    GenerationInput input;
-    input.startSpeed = config.generateSpeed;
-    input.startX = m_anchorX;
-    input.startY = m_layer->m_player1 ? m_layer->m_player1->getPositionY() : 0.f;
-    input.startMode = m_layer->m_player1 ? gamemodeOf(m_layer->m_player1) : Gamemode::Cube;
-    input.horizonX = m_scannedLevel.obstacles.back().rightX + 200.f;
-
-    auto notes = generateNotes(m_scannedLevel, input);
-
-    std::vector<double> times;
-    std::vector<double> holds;
-    times.reserve(notes.size());
-    holds.reserve(notes.size());
-
-    for (auto const& note : notes) {
-        float speedHere = speedAt(m_scannedLevel, note.levelX, input.startSpeed);
-        double distance = static_cast<double>(note.levelX - input.startX);
-        times.push_back(distance / static_cast<double>(std::max(speedHere, 1.f)));
-        holds.push_back(static_cast<double>(note.holdSeconds));
-    }
-
-    log::info("{} Generated {} notes across all gamemodes", kLogTag, times.size());
-    m_rhythmLane.rebuild(timelineFromHolds(times, holds));
-}
-
 void GuideController::rebuildRhythmTimeline() {
-    if (settings().generateFromLevel) {
-        rebuildFromLevelScan();
-        publishAssistTargets();
-        return;
-    }
-
     auto data = MacroStore::get().data();
     if (!data) {
         m_rhythmLane.rebuild({});

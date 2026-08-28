@@ -14,6 +14,7 @@ constexpr std::array<double, 10> kCommonTickRates = {
 constexpr float kMinUsableDuration = 0.001f;
 constexpr double kMinUsableSpanSeconds = 0.25;
 
+
 } // namespace
 
 bool isPlausibleTickRate(double rate) {
@@ -57,6 +58,8 @@ double recoverTickRate(double declared, size_t frameSpan, float duration) {
 
     double snapped = snapToCommonRate(derived, kDerivedSnapTolerance);
     if (snapped != derived) return snapped;
+
+    if (derived > kDefaultTickRate) return derived;
 
     return kDefaultTickRate;
 }

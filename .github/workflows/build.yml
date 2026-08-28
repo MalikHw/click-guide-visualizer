@@ -255,6 +255,7 @@ jobs:
       contents: write
     env:
       DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      DISCORD_PING: ${{ vars.DISCORD_PING }}
 
     steps:
       - name: Download the packaged mod
@@ -309,8 +310,11 @@ jobs:
           if not notes:
               notes = 'See the release page for details.'
 
+          ping = os.environ.get('DISCORD_PING', '').strip()
+
           payload = {
               'username': 'Click Guide Visualizer',
+              'allowed_mentions': {'parse': ['everyone', 'roles']},
               'embeds': [{
                   'title': f'Click Guide Visualizer {tag}',
                   'url': release,
@@ -323,6 +327,10 @@ jobs:
                   'footer': {'text': 'Drop it in geode/mods and restart the game'},
               }],
           }
+
+          if ping:
+              payload['content'] = f'{ping} {tag} is out'
+
           print(json.dumps(payload))
           PYEOF
 

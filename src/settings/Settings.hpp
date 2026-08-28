@@ -55,8 +55,6 @@ struct Snapshot {
     bool rhythmHitEffects = true;
     float rhythmHitEffectTime = 0.25f;
 
-    bool generateFromLevel = false;
-    float generateSpeed = 311.58f;
 
     bool enableCheats = false;
     bool assistBufferInput = false;

@@ -15,6 +15,8 @@ constexpr int kBisectionExpansions = 12;
 constexpr int kBisectionHalvings = 40;
 constexpr float kBisectionInitialSpan = 1.f;
 
+constexpr float kUnlimitedMarkerGap = 1.0e9f;
+
 struct Band {
     float x0 = 0.f;
     float x1 = 0.f;
@@ -30,6 +32,7 @@ struct Marker {
     bool hasRecordedY = false;
     bool isRelease = false;
     size_t inputIndex = 0;
+    float gapToNeighbour = kUnlimitedMarkerGap;
 };
 
 struct Geometry {
@@ -46,6 +49,8 @@ using PositionResolver = std::function<float(double frame)>;
 
 float timeToLevelX(PlayLayer* layer, float seconds);
 float invertLevelX(PlayLayer* layer, float targetX);
+
+void assignMarkerSpacing(Geometry& geometry);
 
 Geometry buildGeometry(ReplayData const& replay, double offsetFrames, float anchorX,
                        PositionResolver const& resolver, bool includeReleases);

@@ -38,7 +38,16 @@ void emitBand(Geometry& geometry, PendingPress const& press, double releaseFrame
     geometry.bands.push_back(band);
 }
 
+void normaliseBands(Geometry& geometry) {
+    for (auto& band : geometry.bands) {
+        if (band.x1 < band.x0) std::swap(band.x0, band.x1);
+        if (band.x1 - band.x0 < kMinimumBandWidth) band.x1 = band.x0 + kMinimumBandWidth;
+    }
+}
+
 void sortByX(Geometry& geometry) {
+    normaliseBands(geometry);
+
     std::stable_sort(geometry.bands.begin(), geometry.bands.end(),
                      [](Band const& a, Band const& b) { return a.x0 < b.x0; });
     std::stable_sort(geometry.markers.begin(), geometry.markers.end(),
@@ -76,6 +85,29 @@ float invertLevelX(PlayLayer* layer, float targetX) {
     }
 
     return (low + high) * 0.5f;
+}
+
+void assignMarkerSpacing(Geometry& geometry) {
+    auto& markers = geometry.markers;
+
+    for (size_t index = 0; index < markers.size(); ++index) {
+        float gap = kUnlimitedMarkerGap;
+
+        for (size_t ahead = index + 1; ahead < markers.size(); ++ahead) {
+            if (markers[ahead].player2 != markers[index].player2) continue;
+            gap = std::min(gap, std::fabs(markers[ahead].x - markers[index].x));
+            break;
+        }
+
+        for (size_t behind = index; behind-- > 0;) {
+            if (markers[behind].player2 != markers[index].player2) continue;
+            gap = std::min(gap, std::fabs(markers[index].x - markers[behind].x));
+            break;
+        }
+
+        if (!std::isfinite(gap) || gap <= 0.f) gap = kUnlimitedMarkerGap;
+        markers[index].gapToNeighbour = gap;
+    }
 }
 
 Geometry buildGeometry(ReplayData const& replay, double offsetFrames, float anchorX,
@@ -151,6 +183,7 @@ Geometry buildGeometry(ReplayData const& replay, double offsetFrames, float anch
     }
 
     sortByX(geometry);
+    assignMarkerSpacing(geometry);
     return geometry;
 }
 

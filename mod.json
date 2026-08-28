@@ -8,7 +8,7 @@
     },
     "id": "geekedgdplayer.click-guide-visualizer",
     "name": "Click Guide Visualizer",
-    "version": "v0.7.3",
+    "version": "v0.8.1",
     "developer": "GeekedGDPlayer",
     "description": "Shows you where the clicks are before you get to them.",
     "links": {
@@ -353,27 +353,6 @@
             "description": "How long the burst lasts.",
             "control": {
                 "slider-step": 0.05
-            }
-        },
-        "generate-title": {
-            "type": "title",
-            "name": "Make Notes From Level"
-        },
-        "generate-from-level": {
-            "type": "bool",
-            "default": false,
-            "name": "Make Notes Without A Macro",
-            "description": "Read the level and work out the clicks yourself. Rough, but works with no macro."
-        },
-        "generate-speed": {
-            "type": "float",
-            "default": 311.58,
-            "min": 50.0,
-            "max": 1200.0,
-            "name": "Starting Speed",
-            "description": "Which speed portal the level starts on.",
-            "control": {
-                "slider-step": 1.0
             }
         },
         "assist-title": {

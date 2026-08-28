@@ -1,5 +1,21 @@
 # changelog
 
+## v0.8.1
+
+- **fixed the editor getting stuck on loading**, the hotkeys were listening everywhere, not just in levels, so Q and E in the editor were making the mod scan your macro folder and load a file while the editor was still opening, they only work during gameplay now and pass straight through everywhere else
+- **fixed the guide being wrong in levels with reverse portals**, everything assumed you always move left to right, so in a reversed section the bands were drawn back to front and the mod hid the ones you were actually heading towards, thanks viperi for reporting it on limbo
+
+## v0.8.0
+
+- **removed the level scanner**, the mod no longer tries to work out clicks from the level itself, it only shows macros now, the scanner never handled pads, orbs or duals and the flight mode guesses were unreliable
+- three settings are gone with it, Make Notes Without A Macro, Starting Speed, and their heading
+- release posts can ping a role now
+
+## v0.7.4
+
+- **fixed high framerate macros putting the lines in completely the wrong places**, a macro recorded above 720tps that did not state its rate was being read as 240, which stretched the whole guide, a 1200tps macro was spread five times too wide so clicks landed nowhere near the real ones and extra marks appeared between them
+- **fixed dots merging into a solid bar at high cps**, the dots were a fixed size no matter how close together the clicks were, past about 25 cps they overlapped, they shrink to fit now like the rhythm notes already did
+
 ## v0.7.3
 
 - **changing a colour or opacity no longer rebuilds the whole guide**, before, every single setting rebuilt every band and marker in the macro, even ones that only change how things look, dragging an opacity slider did that once per step

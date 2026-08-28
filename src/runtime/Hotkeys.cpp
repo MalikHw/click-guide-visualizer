@@ -7,6 +7,7 @@
 #include "ui/CornerToast.hpp"
 
 #include <Geode/Geode.hpp>
+#include <Geode/binding/PlayLayer.hpp>
 #include <Geode/loader/SettingV3.hpp>
 
 using namespace geode::prelude;
@@ -18,6 +19,10 @@ namespace {
 constexpr cocos2d::ccColor3B kOnColour{120, 255, 170};
 constexpr cocos2d::ccColor3B kOffColour{200, 200, 210};
 constexpr cocos2d::ccColor3B kProblemColour{255, 130, 150};
+
+bool inGameplay() {
+    return PlayLayer::get() != nullptr;
+}
 
 void toggleGuide() {
     auto* mod = Mod::get();
@@ -50,7 +55,7 @@ void installHotkeys() {
     listenForKeybindSettingPresses(
         kToggleKeySetting,
         [](Keybind const&, bool down, bool repeat, double) {
-            if (!down || repeat) return false;
+            if (!down || repeat || !inGameplay()) return false;
             toggleGuide();
             return true;
         });
@@ -58,7 +63,7 @@ void installHotkeys() {
     listenForKeybindSettingPresses(
         kPreviousKeySetting,
         [](Keybind const&, bool down, bool repeat, double) {
-            if (!down || repeat) return false;
+            if (!down || repeat || !inGameplay()) return false;
             switchMacro(-1);
             return true;
         });
@@ -66,7 +71,7 @@ void installHotkeys() {
     listenForKeybindSettingPresses(
         kNextKeySetting,
         [](Keybind const&, bool down, bool repeat, double) {
-            if (!down || repeat) return false;
+            if (!down || repeat || !inGameplay()) return false;
             switchMacro(1);
             return true;
         });

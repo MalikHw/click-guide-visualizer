@@ -46,8 +46,6 @@ it cannot save a late click, the physics already happened by then
 ## known issues
 
 - ios sometimes wont load it, thats a geode launcher signing thing not the mod, force close and reopen
-- the level scanner doesnt handle pads, orbs or duals yet
-- ship, wave, ufo and swing notes are worked out by following the gap and get unreliable in tight sections
 
 ## credits
 
