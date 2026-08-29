@@ -1,5 +1,10 @@
 # changelog
 
+## v0.9.2
+
+- **new Special Thanks button** in the pause menu popup, everyone who helped me build this and everyone who uses it
+- the button row got a bit tighter to fit it, six buttons instead of five
+
 ## v0.9.1
 
 - **fixed the wave path being upside down after a gravity portal**, holding flips you down when youre upside down, the line was still drawing it as up

@@ -10,6 +10,7 @@
 #include "ui/MacroPicker.hpp"
 
 #include <Geode/binding/ButtonSprite.hpp>
+#include "ui/ThanksPopup.hpp"
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/ui/GeodeUI.hpp>
@@ -99,10 +100,11 @@ void GuidePopup::buildActionRow() {
         {"Folder", "GJ_button_05.png", menu_selector(GuidePopup::onFolder), false},
         {"Unload", "GJ_button_06.png", menu_selector(GuidePopup::onUnload), true},
         {"Settings", "GJ_button_02.png", menu_selector(GuidePopup::onSettings), false},
+        {"Thanks", "GJ_button_04.png", menu_selector(GuidePopup::onThanks), false},
     };
 
     constexpr size_t kActionCount = sizeof(actions) / sizeof(actions[0]);
-    constexpr float kActionSpacing = 78.f;
+    constexpr float kActionSpacing = 68.f;
     float firstX = -kActionSpacing * (kActionCount - 1) * 0.5f;
 
     for (size_t index = 0; index < kActionCount; ++index) {
@@ -364,6 +366,10 @@ void GuidePopup::showOnlineResults() {
         popup->m_onlineMessage = "Downloaded, loading it now";
         popup->loadMacroAt(result.path);
     });
+}
+
+void GuidePopup::onThanks(CCObject*) {
+    if (auto* popup = ThanksPopup::create()) popup->show();
 }
 
 void GuidePopup::onOnline(CCObject*) {

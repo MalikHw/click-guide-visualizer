@@ -37,6 +37,7 @@ private:
     void onSelectEntry(cocos2d::CCObject* sender);
     void onUnload(cocos2d::CCObject* sender);
     void onOnline(cocos2d::CCObject* sender);
+    void onThanks(cocos2d::CCObject* sender);
 
     void loadMacroAt(std::filesystem::path const& path);
     void unloadMacro();
