@@ -70,6 +70,7 @@ void SettingsCache::refresh() {
     next.learnTrajectory = boolSetting("learn-trajectory", true);
     next.predictHeights = boolSetting("predict-heights", false);
     next.showPath = boolSetting("show-path", false);
+    next.showWavePath = boolSetting("show-wave-path", false);
 
     for (size_t index = 0; index < kGamemodeCount; ++index) {
         auto mode = static_cast<Gamemode>(index);

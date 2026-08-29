@@ -7,7 +7,7 @@ namespace cgv {
 
 namespace {
 
-constexpr std::array<std::string_view, 26> kAppearanceOnlyKeys = {
+constexpr std::array<std::string_view, 27> kAppearanceOnlyKeys = {
     "line-color",
     "player2-color",
     "hold-color",
@@ -27,6 +27,7 @@ constexpr std::array<std::string_view, 26> kAppearanceOnlyKeys = {
     "show-accuracy",
     "show-clicks",
     "show-band-lines",
+    "show-wave-path",
     "rhythm-lane-x",
     "rhythm-lane-width",
     "rhythm-hit-y",

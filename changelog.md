@@ -1,5 +1,19 @@
 # changelog
 
+## v0.9.1
+
+- **fixed the wave path being upside down after a gravity portal**, holding flips you down when youre upside down, the line was still drawing it as up
+- mirror mode, rotated gameplay and reverse already worked, the guide is attached to the level itself so it flips and turns with it
+
+## v0.9.0
+
+- **new setting, Show Wave Path**, on wave the mod now draws the actual line the macro takes, the whole zigzag, so you can see where the wave is meant to go before you get there instead of just seeing where the clicks are
+- it reads the holds and releases straight out of the macro so the shape is exactly what the macro does, not a guess
+- works in dual, each player gets its own line
+- mini wave is handled, the slope doubles
+- speed portals are handled, the line follows the real speed at that point in the level
+- **fixed the guide using the wrong speed in normal levels**, it was reading the platformer speed field which is only set in platformer mode, so every normal level silently fell back to a fixed 1x guess, it now measures the real speed from the level itself
+
 ## v0.8.1
 
 - **fixed the editor getting stuck on loading**, the hotkeys were listening everywhere, not just in levels, so Q and E in the editor were making the mod scan your macro folder and load a file while the editor was still opening, they only work during gameplay now and pass straight through everywhere else

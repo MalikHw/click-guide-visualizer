@@ -8,6 +8,7 @@
 #include "render/PhysicsPredictor.hpp"
 #include "render/RhythmLane.hpp"
 #include "render/RhythmModel.hpp"
+#include "render/WavePath.hpp"
 #include "runtime/Alignment.hpp"
 #include "runtime/Runtime.hpp"
 #include "runtime/StartOffset.hpp"
@@ -50,6 +51,7 @@ private:
     void updateJudgements(float deltaSeconds);
     void updatePredictions();
     void observeHeights();
+    void drawMacroWavePath(Viewport const& view);
 
     void redraw(float deltaSeconds);
     void rebuildRhythmTimeline();

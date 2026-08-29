@@ -33,6 +33,7 @@ struct Snapshot {
     bool learnTrajectory = true;
     bool predictHeights = false;
     bool showPath = false;
+    bool showWavePath = false;
 
     std::array<bool, kGamemodeCount> modeEnabled{};
 

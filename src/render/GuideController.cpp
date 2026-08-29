@@ -35,6 +35,23 @@ float playerSpeedX(PlayerObject* player) {
     return std::fabs(speed);
 }
 
+constexpr float kSpeedProbeSeconds = 0.05f;
+
+float measuredSpeedX(PlayLayer* layer, double atSeconds) {
+    if (!layer) return kDefaultSpeedX;
+
+    float from = static_cast<float>(std::max(atSeconds, 0.0));
+    float to = from + kSpeedProbeSeconds;
+
+    float startX = timeToLevelX(layer, from);
+    float endX = timeToLevelX(layer, to);
+    if (!std::isfinite(startX) || !std::isfinite(endX)) return kDefaultSpeedX;
+
+    float speed = (endX - startX) / kSpeedProbeSeconds;
+    if (!std::isfinite(speed) || std::fabs(speed) < 1.f) return kDefaultSpeedX;
+    return std::fabs(speed);
+}
+
 } // namespace
 
 void GuideController::attach(PlayLayer* layer) {
@@ -359,6 +376,48 @@ void GuideController::updatePredictions() {
     }
 }
 
+void GuideController::drawMacroWavePath(Viewport const& view) {
+    if (!m_cursorNode || !m_layer) return;
+
+    auto data = MacroStore::get().data();
+    if (!data || data->inputs.empty()) return;
+
+    double tickRate = effectiveTickRate();
+    if (tickRate <= 0.0) return;
+
+    double offsetSeconds = m_alignment.offsetFrames() / tickRate;
+    PlayLayer* layer = m_layer;
+    TimeToX timeToX = [layer, offsetSeconds](double seconds) {
+        return timeToLevelX(layer, static_cast<float>(seconds + offsetSeconds));
+    };
+
+    double nowSeconds = levelTimeNow() - offsetSeconds;
+
+    auto paintFor = [&](PlayerObject* player, bool player2) {
+        if (!player) return;
+        if (gamemodeOf(player) != Gamemode::Wave) return;
+
+        WavePathRequest request;
+        request.originX = player->getPositionX();
+        request.originY = player->getPositionY();
+        request.speedX = measuredSpeedX(m_layer, levelTimeNow());
+        request.slopeScale = player->m_vehicleSize < 1.f ? kMiniWaveSlopeScale : 1.f;
+        request.gravitySign = player->m_isUpsideDown ? -1.f : 1.f;
+        request.startSeconds = nowSeconds;
+        request.limitX = view.maxX;
+        request.heldAtStart = player->m_holdingLeft || player->m_holdingRight;
+        request.player2 = player2;
+
+        auto path = buildWavePath(*data, request, timeToX);
+        GuidePainter::paintTrajectory(m_cursorNode, path, settings(), player2);
+    };
+
+    paintFor(m_layer->m_player1, false);
+    if (m_layer->m_player2 && m_layer->m_gameState.m_isDualMode) {
+        paintFor(m_layer->m_player2, true);
+    }
+}
+
 void GuideController::observeHeights() {
     if (!settings().learnTrajectory || !m_layer || !m_layer->m_player1) return;
     auto* player = m_layer->m_player1;
@@ -472,6 +531,10 @@ void GuideController::redraw(float deltaSeconds) {
     if (config.showPath) {
         GuidePainter::paintTrajectory(m_cursorNode, m_predictor.samples(), config, false);
         GuidePainter::paintTrajectory(m_cursorNode, m_predictorPlayer2.samples(), config, true);
+    }
+
+    if (config.showWavePath) {
+        drawMacroWavePath(view);
     }
 
     if (config.showPlayerLine) {

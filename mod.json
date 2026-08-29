@@ -8,7 +8,7 @@
     },
     "id": "geekedgdplayer.click-guide-visualizer",
     "name": "Click Guide Visualizer",
-    "version": "v0.8.1",
+    "version": "v0.9.1",
     "developer": "GeekedGDPlayer",
     "description": "Shows you where the clicks are before you get to them.",
     "links": {
@@ -255,6 +255,12 @@
             "default": false,
             "name": "Show Flight Path",
             "description": "Draw the line your player will follow. Needs Guess Your Height on."
+        },
+        "show-wave-path": {
+            "type": "bool",
+            "default": false,
+            "name": "Show Wave Path",
+            "description": "Draw the exact line the wave takes from the macro, so you can see the whole zigzag before you reach it. Wave only."
         },
         "rhythm-title": {
             "type": "title",
