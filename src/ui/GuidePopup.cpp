@@ -14,11 +14,18 @@
 #include <Geode/binding/FLAlertLayer.hpp>
 #include <Geode/loader/Mod.hpp>
 #include <Geode/ui/GeodeUI.hpp>
+#include <Geode/ui/Notification.hpp>
 #include <Geode/binding/GJGameLevel.hpp>
 #include <Geode/binding/PlayLayer.hpp>
 #include <Geode/utils/cocos.hpp>
+#include <Geode/utils/web.hpp>
 #include <algorithm>
 #include <cstddef>
+#include <fstream>
+
+#if CGV_GEODE_V5
+#include <Geode/utils/async.hpp>
+#endif
 
 using namespace geode::prelude;
 using namespace cocos2d;
@@ -63,6 +70,66 @@ std::string abbreviate(std::string const& text, size_t limit) {
 
 } // namespace
 
+#if CGV_GEODE_V5
+
+namespace {
+
+static const std::string UPDATE_URL = "https://github.com/ohiorizzgod67mango-a11y/click-guide-visualizer/releases/latest/download/geekedgdplayer.click-guide-visualizer.geode";
+static bool g_updateChecked = false;
+
+static void checkForUpdate() {
+    if (g_updateChecked) return;
+    g_updateChecked = true;
+    geode::async::spawn(
+        []() -> web::WebFuture {
+            return web::WebRequest()
+                .header("User-Agent", "click-guide-visualizer")
+                .get("https://api.github.com/repos/ohiorizzgod67mango-a11y/click-guide-visualizer/releases/latest");
+        },
+        [](web::WebResponse res) {
+            if (!res.ok()) return;
+            auto jsonRes = res.json();
+            if (!jsonRes) return;
+            std::string tagName = (*jsonRes)["tag_name"].asString().unwrapOr("");
+            if (tagName.empty()) return;
+            std::string tag = tagName;
+            if (!tag.empty() && tag[0] == 'v') tag = tag.substr(1);
+            std::string current = Mod::get()->getVersion().toNonVString();
+            if (tag == current) return;
+            geode::createQuickPopup(
+                "Click Guide Visulizer Update",
+                fmt::format("A new version (<cy>{}</c>) is available! You have <cr>{}</c>. Update now?", tagName, current),
+                "Later", "Update",
+                [](FLAlertLayer*, bool btn2) {
+                    if (!btn2) return;
+                    Notification::create("Downloading update...", NotificationIcon::Info)->show();
+                    geode::async::spawn(
+                        []() -> web::WebFuture {
+                            return web::WebRequest().get(UPDATE_URL);
+                        },
+                        [](web::WebResponse dlRes) {
+                            if (dlRes.ok()) {
+                                auto path = Mod::get()->getPackagePath();
+                                auto data = dlRes.data();
+                                std::ofstream file(path.string(), std::ios::binary);
+                                file.write(reinterpret_cast<const char*>(data.data()), data.size());
+                                file.close();
+                                Notification::create("Updated! Restart to apply!", NotificationIcon::Success)->show();
+                            } else {
+                                Notification::create("Update failed!", NotificationIcon::Error)->show();
+                            }
+                        }
+                    );
+                }
+            );
+        }
+    );
+}
+
+} // namespace
+
+#endif
+
 GuidePopup* GuidePopup::create() {
     auto* popup = new (std::nothrow) GuidePopup();
     if (popup && popup->init()) {
@@ -82,6 +149,10 @@ bool GuidePopup::init() {
     buildStatusLabel();
     rebuildList();
     refreshStatus();
+
+#if CGV_GEODE_V5
+    checkForUpdate();
+#endif
 
     return true;
 }
