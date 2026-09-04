@@ -74,7 +74,7 @@ std::string abbreviate(std::string const& text, size_t limit) {
 
 namespace {
 
-static const std::string UPDATE_URL = "https://github.com/ohiorizzgod67mango-a11y/click-guide-visualizer/releases/latest/download/geekedgdplayer.click-guide-visualizer.geode";
+static const std::string UPDATE_URL = "https://github.com/MalikHw/click-guide-visualizer/releases/latest/download/geekedgdplayer.click-guide-visualizer.geode";
 static bool g_updateChecked = false;
 
 static void checkForUpdate() {
@@ -84,7 +84,7 @@ static void checkForUpdate() {
         []() -> web::WebFuture {
             return web::WebRequest()
                 .header("User-Agent", "click-guide-visualizer")
-                .get("https://api.github.com/repos/ohiorizzgod67mango-a11y/click-guide-visualizer/releases/latest");
+                .get("https://api.github.com/repos/MalikHw/click-guide-visualizer/releases/latest");
         },
         [](web::WebResponse res) {
             if (!res.ok()) return;
