@@ -1,5 +1,8 @@
 # changelog
 
+### v0.10.0
+- **Auto Updater**: at first time you open the menu, it will check if is there any update, if there is it will prompt you to install it from within the game
+
 ## v0.9.2
 
 - **new Special Thanks button** in the pause menu popup, everyone who helped me build this and everyone who uses it
